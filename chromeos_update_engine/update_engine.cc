@@ -81,7 +81,7 @@ extern "C" int64_t ExecuteSourceBsdiffOperation(void *data, size_t data_size,
 
     auto sink = [output, &written, output_size](const uint8_t *data, size_t count) -> size_t {
         written += count;
-        if (written >= output_size) {
+        if (written > output_size) {
             return 0;
         }
         std::memcpy(output, data, count);
