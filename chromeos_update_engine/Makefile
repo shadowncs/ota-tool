@@ -1,5 +1,5 @@
 CXXFLAGS=-std=gnu++17
-CFLAGS=-I. -Ibsdiff/include -Ipuffin/src/include -Izucchini/aosp/include -Ilibchrome -Igtest/include -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -Ibuild -ggdb
+CFLAGS=-I brotli/c/include -I. -Ibsdiff/include -Ipuffin/src/include -Izucchini/aosp/include -Ilibchrome -Igtest/include -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -Ibuild -ggdb
 LDFLAGS=-Wl,--copy-dt-needed-entries -labsl_log_internal_check_op
 
 libs: build build/libbrotli.a build/libbspatch.a build/libbz2.a build/libpuffpatch.a build/libzucchini.a build/libchrome.a
