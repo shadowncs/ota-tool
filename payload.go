@@ -255,10 +255,6 @@ func (p *Payload) Extract(partition *chromeos_update_engine.PartitionUpdate, out
 		bufSha := sha256.New()
 		teeReader := io.TeeReader(io.NewSectionReader(p.file, dataOffset, dataLength), bufSha)
 
-		dataBuf := make([]byte, dataLength)
-
-		teeReader.Read(dataBuf)
-
 		switch operation.GetType() {
 		case chromeos_update_engine.InstallOperation_REPLACE:
 			n, err := io.Copy(out, teeReader)
@@ -370,6 +366,8 @@ func (p *Payload) Extract(partition *chromeos_update_engine.PartitionUpdate, out
 				buf = append(buf, data...)
 			}
 
+			dataBuf := make([]byte, dataLength)
+			teeReader.Read(dataBuf)
 			buf, err := chromeos_update_engine.ExecuteSourceBsdiffOperation(buf, dataBuf)
 
 			if err != nil {
@@ -422,6 +420,8 @@ func (p *Payload) Extract(partition *chromeos_update_engine.PartitionUpdate, out
 				buf = append(buf, data...)
 			}
 
+			dataBuf := make([]byte, dataLength)
+			teeReader.Read(dataBuf)
 			buf, err := chromeos_update_engine.ExecuteSourcePuffDiffOperation(buf, dataBuf)
 
 			if err != nil {
