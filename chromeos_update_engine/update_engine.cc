@@ -27,7 +27,7 @@ class PuffinDataStream : public puffin::StreamInterface {
   }
 
   bool Seek(uint64_t offset) override {
-    if (offset <= size_) {
+    if (offset > size_) {
       return false;
     }
 
