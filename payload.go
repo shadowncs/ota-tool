@@ -392,7 +392,6 @@ func (p *Payload) worker() {
 		if err != nil {
 		}
 
-
 		sourcepath := fmt.Sprintf("%s/%s", sourceDirectory, name)
 		sourcefile, err := os.OpenFile(sourcepath, os.O_RDONLY, 0755)
 		if isDelta {
@@ -402,7 +401,6 @@ func (p *Payload) worker() {
 		} else {
 			sourcefile = nil
 		}
-
 
 		if err := p.Extract(partition, file, sourcefile); err != nil {
 			fmt.Println(err.Error())

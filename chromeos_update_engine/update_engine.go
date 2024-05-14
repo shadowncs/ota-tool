@@ -9,23 +9,23 @@ package chromeos_update_engine
 */
 import "C"
 import (
-	"unsafe"
 	"fmt"
+	"unsafe"
 )
 
 func ExecuteSourceBsdiffOperation(data []byte, patch []byte, size int64) ([]byte, error) {
 	output := make([]byte, size)
 	result := int(C.ExecuteSourceBsdiffOperation(
-						unsafe.Pointer(&data[0]), C.ulong(len(data)),
-						unsafe.Pointer(&patch[0]), C.ulong(len(patch)),
-						unsafe.Pointer(&output[0]), C.ulong(len(output)),
+		unsafe.Pointer(&data[0]), C.ulong(len(data)),
+		unsafe.Pointer(&patch[0]), C.ulong(len(patch)),
+		unsafe.Pointer(&output[0]), C.ulong(len(output)),
 	))
 
-	if result < 0{
+	if result < 0 {
 		return nil, fmt.Errorf("C++ ExecuteSourceBsdiffOperation call failed (returned %d)", result)
 	}
 
-	if (result != len(output)) {
+	if result != len(output) {
 		realloc := make([]byte, result)
 		copy(realloc, output)
 		return realloc, nil
@@ -37,15 +37,15 @@ func ExecuteSourceBsdiffOperation(data []byte, patch []byte, size int64) ([]byte
 func ExecuteSourcePuffDiffOperation(data []byte, patch []byte, size int64) ([]byte, error) {
 	output := make([]byte, size)
 	result := int(C.ExecuteSourcePuffDiffOperation(
-						unsafe.Pointer(&data[0]), C.ulong(len(data)),
-						unsafe.Pointer(&patch[0]), C.ulong(len(patch)),
-						unsafe.Pointer(&output[0]), C.ulong(len(output)),
+		unsafe.Pointer(&data[0]), C.ulong(len(data)),
+		unsafe.Pointer(&patch[0]), C.ulong(len(patch)),
+		unsafe.Pointer(&output[0]), C.ulong(len(output)),
 	))
-	if result < 0{
+	if result < 0 {
 		return nil, fmt.Errorf("C++ ExecuteSourcePuffDiffOperation call failed (returned %d)", result)
 	}
 
-	if (result != len(output)) {
+	if result != len(output) {
 		realloc := make([]byte, result)
 		copy(realloc, output)
 		return realloc, nil
