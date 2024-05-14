@@ -255,53 +255,38 @@ func (p *Payload) Extract(partition *chromeos_update_engine.PartitionUpdate, out
 		bufSha := sha256.New()
 		teeReader := io.TeeReader(io.NewSectionReader(p.file, dataOffset, dataLength), bufSha)
 
+		var reader io.Reader
+
 		switch operation.GetType() {
-		case chromeos_update_engine.InstallOperation_REPLACE:
-			n, err := io.Copy(out, teeReader)
+		case chromeos_update_engine.InstallOperation_REPLACE_XZ:
+			read := xz.NewDecompressionReader(teeReader)
+			reader = &read
+		case chromeos_update_engine.InstallOperation_REPLACE_BZ:
+			reader = bzip2.NewReader(teeReader)
+		case chromeos_update_engine.InstallOperation_ZERO:
+			reader = bytes.NewReader(make([]byte, expectedUncompressedBlockSize))
+		default:
+			reader = teeReader
+		}
+
+		switch operation.GetType() {
+		case chromeos_update_engine.InstallOperation_REPLACE,
+			chromeos_update_engine.InstallOperation_ZERO,
+			chromeos_update_engine.InstallOperation_REPLACE_XZ,
+			chromeos_update_engine.InstallOperation_REPLACE_BZ:
+
+			n, err := io.Copy(out, reader)
 			if err != nil {
 				return err
+			}
+
+			if closer, ok := reader.(io.Closer); ok {
+				closer.Close()
 			}
 
 			if int64(n) != expectedUncompressedBlockSize {
 				return fmt.Errorf("Verify failed (Unexpected bytes written): %s (%d != %d)", name, n, expectedUncompressedBlockSize)
 			}
-			break
-
-		case chromeos_update_engine.InstallOperation_REPLACE_XZ:
-			reader := xz.NewDecompressionReader(teeReader)
-			n, err := io.Copy(out, &reader)
-			if err != nil {
-				return err
-			}
-			reader.Close()
-			if n != expectedUncompressedBlockSize {
-				return fmt.Errorf("Verify failed (Unexpected bytes written): %s (%d != %d)", name, n, expectedUncompressedBlockSize)
-			}
-
-			break
-
-		case chromeos_update_engine.InstallOperation_REPLACE_BZ:
-			reader := bzip2.NewReader(teeReader)
-			n, err := io.Copy(out, reader)
-			if err != nil {
-				return err
-			}
-			if n != expectedUncompressedBlockSize {
-				return fmt.Errorf("Verify failed (Unexpected bytes written): %s (%d != %d)", name, n, expectedUncompressedBlockSize)
-			}
-			break
-
-		case chromeos_update_engine.InstallOperation_ZERO:
-			reader := bytes.NewReader(make([]byte, expectedUncompressedBlockSize))
-			n, err := io.Copy(out, reader)
-			if err != nil {
-				return err
-			}
-
-			if n != expectedUncompressedBlockSize {
-				return fmt.Errorf("Verify failed (Unexpected bytes written): %s (%d != %d)", name, n, expectedUncompressedBlockSize)
-			}
-			break
 
 		case chromeos_update_engine.InstallOperation_SOURCE_COPY:
 			if !isDelta {
