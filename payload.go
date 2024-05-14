@@ -444,7 +444,6 @@ func (p *Payload) Extract(partition *chromeos_update_engine.PartitionUpdate, out
 				n += e.GetNumBlocks()
 			}
 			break
-			return fmt.Errorf("%s: PUFFDIFF is not yet implemented!", name)
 
 		default:
 			return fmt.Errorf("%s: Unhandled operation type: %s", name, operation.GetType().String())
