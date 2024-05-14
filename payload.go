@@ -301,6 +301,8 @@ func (p *Payload) Extract(partition *chromeos_update_engine.PartitionUpdate, out
 
 			buf := make([]byte, 0)
 
+			srcSha := sha256.New()
+
 			for _, e := range operation.SrcExtents {
 				_, err := in.Seek(int64(e.GetStartBlock())*blockSize, 0)
 				if err != nil {
@@ -321,7 +323,17 @@ func (p *Payload) Extract(partition *chromeos_update_engine.PartitionUpdate, out
 					return fmt.Errorf("%s: %s expected %d bytes, but got %d", name, operation.GetType().String(), expectedInputBlockSize, n)
 				}
 
+				srcSha.Write(data)
 				buf = append(buf, data...)
+			}
+
+			// verify hash
+			hash := hex.EncodeToString(srcSha.Sum(nil))
+			expectedHash := hex.EncodeToString(operation.GetSrcSha256Hash())
+			if expectedHash != "" && hash != expectedHash {
+				fmt.Println(operation.GetType().String())
+				fmt.Println(buf)
+				return fmt.Errorf("Verify failed (Source Checksum mismatch): %s (%s != %s)", name, hash, expectedHash)
 			}
 
 			size := int64(0)
@@ -372,7 +384,7 @@ func (p *Payload) Extract(partition *chromeos_update_engine.PartitionUpdate, out
 		hash := hex.EncodeToString(bufSha.Sum(nil))
 		expectedHash := hex.EncodeToString(operation.GetDataSha256Hash())
 		if expectedHash != "" && hash != expectedHash {
-			return fmt.Errorf("Verify failed (Checksum mismatch): %s (%s != %s)", name, hash, expectedHash)
+			return fmt.Errorf("Verify failed (Data Checksum mismatch): %s (%s != %s)", name, hash, expectedHash)
 		}
 	}
 
