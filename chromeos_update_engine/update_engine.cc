@@ -73,7 +73,7 @@ extern "C" int64_t ExecuteSourcePuffDiffOperation(void *data, size_t data_size,
     puffin::UniqueStreamPtr src(new PuffinDataStream(data, data_size, true));
     puffin::UniqueStreamPtr dst(new PuffinDataStream(output, output_size, false));
 
-    return puffin::PuffPatch(std::move(src), std::move(dst), (const uint8_t *) patch, patch_size, kMaxCacheSize) ? -1 : output_size;
+    return puffin::PuffPatch(std::move(src), std::move(dst), (const uint8_t *) patch, patch_size, kMaxCacheSize) ? output_size : -1;
 }
 
 

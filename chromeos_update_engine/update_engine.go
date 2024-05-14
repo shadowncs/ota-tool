@@ -41,6 +41,7 @@ func ExecuteSourcePuffDiffOperation(data []byte, patch []byte, size int64) ([]by
 		unsafe.Pointer(&patch[0]), C.ulong(len(patch)),
 		unsafe.Pointer(&output[0]), C.ulong(len(output)),
 	))
+
 	if result < 0 {
 		return nil, fmt.Errorf("C++ ExecuteSourcePuffDiffOperation call failed (returned %d)", result)
 	}
@@ -62,7 +63,7 @@ func ExecuteSourceZucchiniOperation(data []byte, patch []byte, size int64) ([]by
 		unsafe.Pointer(&output[0]), C.ulong(len(output)),
 	))
 
-	if result < 0 {
+	if result != 0 {
 		return nil, fmt.Errorf("C++ ExecuteSourcePuffDiffOperation call failed (returned %d)", result)
 	}
 
