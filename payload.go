@@ -288,42 +288,12 @@ func (p *Payload) Extract(partition *chromeos_update_engine.PartitionUpdate, out
 				return fmt.Errorf("Verify failed (Unexpected bytes written): %s (%d != %d)", name, n, expectedUncompressedBlockSize)
 			}
 
-		case chromeos_update_engine.InstallOperation_SOURCE_COPY:
-			if !isDelta {
-				return fmt.Errorf("%s: SOURCE_COPY is only supported for delta", name)
-			}
-
-			for _, e := range operation.SrcExtents {
-				_, err := in.Seek(int64(e.GetStartBlock()) * blockSize, 0)
-				if err != nil {
-					return err
-				}
-
-				expectedInputBlockSize := int64(e.GetNumBlocks()) * blockSize
-
-				data := make([]byte, expectedInputBlockSize)
-				n, err := in.Read(data)
-
-				if err != nil {
-					fmt.Printf("%s: SOURCE_COPY error: %s (read %d)\n", name, err, n)
-					return err
-				}
-
-				if int64(n) != expectedInputBlockSize {
-					return fmt.Errorf("%s: SOURCE_COPY expected %d bytes, but got %d", name, expectedInputBlockSize, n)
-				}
-
-				if _, err := out.Write(data[:n]); err != nil {
-					return err
-				}
-			}
-			break
-
 		case chromeos_update_engine.InstallOperation_SOURCE_BSDIFF,
 			chromeos_update_engine.InstallOperation_BSDIFF,
 			chromeos_update_engine.InstallOperation_BROTLI_BSDIFF,
 			chromeos_update_engine.InstallOperation_PUFFDIFF,
-			chromeos_update_engine.InstallOperation_ZUCCHINI:
+			chromeos_update_engine.InstallOperation_ZUCCHINI,
+			chromeos_update_engine.InstallOperation_SOURCE_COPY:
 
 			if !isDelta {
 				return fmt.Errorf("%s: %s is only supported for delta", name, operation.GetType().String())
@@ -368,6 +338,9 @@ func (p *Payload) Extract(partition *chromeos_update_engine.PartitionUpdate, out
 				buf, err = chromeos_update_engine.ExecuteSourcePuffDiffOperation(buf, dataBuf, size)
 			case chromeos_update_engine.InstallOperation_ZUCCHINI:
 				buf, err = chromeos_update_engine.ExecuteSourceZucchiniOperation(buf, dataBuf, size)
+			case chromeos_update_engine.InstallOperation_SOURCE_COPY:
+				// No processing is done for source copies - just a straight copy paste
+				break
 			default:
 				buf, err = chromeos_update_engine.ExecuteSourceBsdiffOperation(buf, dataBuf, size)
 			}
