@@ -366,9 +366,14 @@ func (p *Payload) Extract(partition *chromeos_update_engine.PartitionUpdate, out
 				buf = append(buf, data...)
 			}
 
+			size := int64(0)
+			for _, e := range operation.DstExtents {
+				size += int64(e.GetNumBlocks() * blockSize)
+			}
+
 			dataBuf := make([]byte, dataLength)
 			teeReader.Read(dataBuf)
-			buf, err := chromeos_update_engine.ExecuteSourceBsdiffOperation(buf, dataBuf)
+			buf, err := chromeos_update_engine.ExecuteSourceBsdiffOperation(buf, dataBuf, size)
 
 			if err != nil {
 				return err
@@ -420,9 +425,14 @@ func (p *Payload) Extract(partition *chromeos_update_engine.PartitionUpdate, out
 				buf = append(buf, data...)
 			}
 
+			size := int64(0)
+			for _, e := range operation.DstExtents {
+				size += int64(e.GetNumBlocks() * blockSize)
+			}
+
 			dataBuf := make([]byte, dataLength)
 			teeReader.Read(dataBuf)
-			buf, err := chromeos_update_engine.ExecuteSourcePuffDiffOperation(buf, dataBuf)
+			buf, err := chromeos_update_engine.ExecuteSourcePuffDiffOperation(buf, dataBuf, size)
 
 			if err != nil {
 				return err

@@ -13,8 +13,8 @@ import (
 	"fmt"
 )
 
-func ExecuteSourceBsdiffOperation(data []byte, patch []byte) ([]byte, error) {
-	output := make([]byte, len(data))
+func ExecuteSourceBsdiffOperation(data []byte, patch []byte, size int64) ([]byte, error) {
+	output := make([]byte, size)
 	result := int(C.ExecuteSourceBsdiffOperation(
 						unsafe.Pointer(&data[0]), C.ulong(len(data)),
 						unsafe.Pointer(&patch[0]), C.ulong(len(patch)),
@@ -34,8 +34,8 @@ func ExecuteSourceBsdiffOperation(data []byte, patch []byte) ([]byte, error) {
 	return output, nil
 }
 
-func ExecuteSourcePuffDiffOperation(data []byte, patch []byte) ([]byte, error) {
-	output := make([]byte, len(data))
+func ExecuteSourcePuffDiffOperation(data []byte, patch []byte, size int64) ([]byte, error) {
+	output := make([]byte, size)
 	result := int(C.ExecuteSourcePuffDiffOperation(
 						unsafe.Pointer(&data[0]), C.ulong(len(data)),
 						unsafe.Pointer(&patch[0]), C.ulong(len(patch)),
