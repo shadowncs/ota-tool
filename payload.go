@@ -455,6 +455,67 @@ func (p *Payload) Extract(partition *chromeos_update_engine.PartitionUpdate, out
 			}
 			break
 
+		case chromeos_update_engine.InstallOperation_ZUCCHINI:
+			if !isDelta {
+				return fmt.Errorf("%s: %s is only supported for delta", name, operation.GetType().String())
+			}
+
+			buf := make([]byte, 0)
+
+			for _, e := range operation.SrcExtents {
+				_, err := in.Seek(int64(e.GetStartBlock())*blockSize, 0)
+				if err != nil {
+					return err
+				}
+
+				expectedInputBlockSize := int64(e.GetNumBlocks()) * blockSize
+
+				data := make([]byte, expectedInputBlockSize)
+				n, err := in.Read(data)
+
+				if err != nil {
+					fmt.Printf("%s: %s error: %s (read %d)\n", name, operation.GetType().String(), err, n)
+					return err
+				}
+
+				if int64(n) != expectedInputBlockSize {
+					return fmt.Errorf("%s: %s expected %d bytes, but got %d", name, operation.GetType().String(), expectedInputBlockSize, n)
+				}
+
+				buf = append(buf, data...)
+			}
+
+			size := int64(0)
+			for _, e := range operation.DstExtents {
+				size += int64(e.GetNumBlocks() * blockSize)
+			}
+
+			dataBuf := make([]byte, dataLength)
+			teeReader.Read(dataBuf)
+
+			buf, err := chromeos_update_engine.ExecuteSourceZucchiniOperation(buf, dataBuf, size)
+
+			if err != nil {
+				return err
+			}
+
+			n := uint64(0)
+
+			for _, e := range operation.DstExtents {
+				_, err := out.Seek(int64(e.GetStartBlock())*blockSize, 0)
+				if err != nil {
+					return err
+				}
+
+				data := make([]byte, e.GetNumBlocks()*blockSize)
+				copy(data, buf[n*blockSize:])
+				if _, err := out.Write(data); err != nil {
+					return err
+				}
+				n += e.GetNumBlocks()
+			}
+			break
+
 		default:
 			return fmt.Errorf("%s: Unhandled operation type: %s", name, operation.GetType().String())
 		}

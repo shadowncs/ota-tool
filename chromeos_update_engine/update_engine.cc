@@ -1,6 +1,8 @@
 #include "update_engine.h"
 #include <bsdiff/bspatch.h>
 #include <puffin/puffpatch.h>
+#include <puffin/brotli_util.h>
+#include <zucchini/zucchini.h>
 #include <cstring>
 #include <utility>
 
@@ -94,4 +96,23 @@ extern "C" int64_t ExecuteSourceBsdiffOperation(void *data, size_t data_size,
 
     return result == 0 ? written : -result;
 
+}
+
+extern "C" int64_t ExecuteSourceZucchiniOperation(void *data, size_t data_size,
+                                            void *patch, size_t patch_size,
+                                            void *output, size_t output_size) {
+
+	zucchini::ConstBufferView old_image((const uint8_t *) data, data_size);
+	zucchini::MutableBufferView new_image((uint8_t *) output, output_size);
+
+	std::vector<uint8_t> zucchini_patch;
+  puffin::BrotliDecode((const uint8_t *)patch, patch_size, &zucchini_patch);
+	zucchini::BufferSource patch_file((const uint8_t *)zucchini_patch.data(), zucchini_patch.size());
+
+	auto patch_reader = zucchini::EnsemblePatchReader::Create(patch_file);
+	if (!patch_reader.has_value()) {
+		return -1;
+	}
+
+	return zucchini::ApplyBuffer(old_image, *patch_reader, new_image);
 }
