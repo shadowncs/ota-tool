@@ -25,26 +25,28 @@ class PuffinDataStream : public puffin::StreamInterface {
   }
 
   bool Seek(uint64_t offset) override {
-    if (is_read_) {
-      offset_ = offset;
-    } else {
-      // For writes technically there should be no change of position, or it
-      // should equivalent of current offset.
-      return offset_ != offset;
+    if (offset <= size_) {
+      return false;
     }
+
+    offset_ = offset;
     return true;
   }
 
   bool Read(void* buffer, size_t count) override {
-    if (offset_ + count >= size_ || !is_read_) return false;
-    std::memcpy(buffer, data_, count);
+    if (offset_ + count > size_) return false;
+
+    void *point = data_ + offset_;
+    std::memcpy(buffer, point, count);
     offset_ += count;
     return true;
   }
 
   bool Write(const void* buffer, size_t count) override {
-    if (offset_ + count >= size_ || is_read_) return false;
-    std::memcpy(data_, buffer, count);
+    if (offset_ + count > size_) return false;
+
+    void *point = data_ + offset_;
+    std::memcpy(point, buffer, count);
     offset_ += count;
     return true;
   }
@@ -67,7 +69,7 @@ extern "C" int64_t ExecuteSourcePuffDiffOperation(void *data, size_t data_size,
     constexpr size_t kMaxCacheSize = 5 * 1024 * 1024;  // Total 5MB cache.
 
     puffin::UniqueStreamPtr src(new PuffinDataStream(data, data_size, true));
-    puffin::UniqueStreamPtr dst(new PuffinDataStream(output, output_size, true));
+    puffin::UniqueStreamPtr dst(new PuffinDataStream(output, output_size, false));
 
     return puffin::PuffPatch(std::move(src), std::move(dst), (const uint8_t *) patch, patch_size, kMaxCacheSize) ? -1 : output_size;
 }
