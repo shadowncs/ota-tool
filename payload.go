@@ -331,8 +331,6 @@ func (p *Payload) Extract(partition *chromeos_update_engine.PartitionUpdate, out
 			hash := hex.EncodeToString(srcSha.Sum(nil))
 			expectedHash := hex.EncodeToString(operation.GetSrcSha256Hash())
 			if expectedHash != "" && hash != expectedHash {
-				fmt.Println(operation.GetType().String())
-				fmt.Println(buf)
 				return fmt.Errorf("Verify failed (Source Checksum mismatch): %s (%s != %s)", name, hash, expectedHash)
 			}
 
