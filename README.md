@@ -1,6 +1,8 @@
-# payload-dumper-go
+# OTA Tool
 
-An android OTA payload dumper written in Go.
+A tool for working with Android OTAs.
+
+This project is a form of [payload-dumper-go](https://github.com/ssut/payload-dumper-go).
 
 ## Features
 
