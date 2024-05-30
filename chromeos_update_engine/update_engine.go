@@ -1,6 +1,6 @@
 package chromeos_update_engine
 
-//go:generate make -B -j libs
+//go:generate make -j libs
 
 /*
 #cgo CXXFLAGS: -Ibsdiff/include -Ipuffin/src/include -Izucchini/aosp/include -Ilibchrome
