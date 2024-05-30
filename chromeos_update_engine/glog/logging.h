@@ -66,10 +66,6 @@
 #define PLOG(level) LOG(level)
 #endif
 
-#ifndef DVLOG
-#define DVLOG(level) LOG(level)
-#endif
-
 #ifndef DPLOG
 #define DPLOG(level) LOG(level)
 #endif

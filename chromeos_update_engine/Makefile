@@ -9,6 +9,7 @@ build:
 
 build/%.o: %.cc
 	@ mkdir -p $(dir $@)
+	sed -zi 's/ *DVLOG[^;]*;\n//g' $<
 	$(CXX) $(CFLAGS) $(CXXFLAGS) -c -o $@ $< $(LDFLAGS)
 
 build/%.o: %.c
