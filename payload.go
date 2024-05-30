@@ -16,7 +16,7 @@ import (
 	humanize "github.com/dustin/go-humanize"
 	"github.com/golang/protobuf/proto"
 	xz "github.com/spencercw/go-xz"
-	"github.com/ssut/payload-dumper-go/chromeos_update_engine"
+	"github.com/EmilyShepherd/ota-tool/chromeos_update_engine"
 	"github.com/vbauerster/mpb/v5"
 	"github.com/vbauerster/mpb/v5/decor"
 )

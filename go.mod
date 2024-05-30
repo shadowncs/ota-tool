@@ -1,4 +1,4 @@
-module github.com/ssut/payload-dumper-go
+module github.com/EmilyShepherd/ota-tool
 
 go 1.14
 
