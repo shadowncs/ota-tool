@@ -21,7 +21,9 @@ See how fast payload-dumper-go is: https://imgur.com/a/X6HKJT4. (MacBook Pro 16-
 
 ## Installation
 
-0. Download the latest binary for your platform from [here](https://github.com/ssut/payload-dumper-go/releases) and extract the contents of the downloaded file to a directory on your system.
+0. Download the latest binary for your platform from [here][download-page] and extract the contents of the downloaded file to a directory on your system.
+
+[download-page]: https://github.com/EmilyShepherd/ota-tool/releases
 
 ### Linux and OSX
 
