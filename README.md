@@ -47,12 +47,6 @@ Note: This command sets the PATH environment variable only for the current termi
 5. Click "New" and add the path to the directory where the extracted binary is located.
 6. Click "OK" on all the windows to save the changes.
 
-### Runtime Deps
-
-- libm
-- liblzma
-- libprotobuf
-
 ## Usage
 
 Run the following command in your terminal:
@@ -78,6 +72,7 @@ go build .
 - protobuf-devel
 - glib-devel
 - libevent-devel
+- liblzma-devel
 
 ### Build Toolchain
 
