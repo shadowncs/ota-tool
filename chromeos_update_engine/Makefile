@@ -63,6 +63,7 @@ build/third_party.a: protobuf/libprotobuf-lite.a
 	find protobuf/third_party -name '*.a' | xargs $(AR) -rcT $@
 
 protobuf/libprotobuf-lite.a:
+	cmake -S protobuf -B protobuf
 	make -C protobuf libprotobuf-lite
 
 ALL_OBJ=build/
