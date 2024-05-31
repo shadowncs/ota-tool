@@ -21,6 +21,11 @@ import (
 	"github.com/vbauerster/mpb/v5/decor"
 )
 
+type FullReader interface {
+	io.Reader
+	io.ReaderAt
+}
+
 type request struct {
 	partition       *chromeos_update_engine.PartitionUpdate
 	sourceDirectory string
@@ -29,9 +34,7 @@ type request struct {
 
 // Payload is a new format for the Android OTA/Firmware update files since Android Oreo
 type Payload struct {
-	Filename string
-
-	file                 *os.File
+	file                 FullReader
 	header               *payloadHeader
 	deltaArchiveManifest *chromeos_update_engine.DeltaArchiveManifest
 	signatures           *chromeos_update_engine.Signatures
@@ -103,9 +106,9 @@ func (ph *payloadHeader) ReadFromPayload() error {
 }
 
 // NewPayload creates a new Payload struct
-func NewPayload(filename string) Payload {
+func NewPayload(file FullReader) Payload {
 	payload := Payload{
-		Filename:    filename,
+		file:        file,
 		concurrency: 4,
 	}
 
@@ -122,17 +125,6 @@ func (p *Payload) GetConcurrency() int {
 	return p.concurrency
 }
 
-// Open tries to open payload.bin file defined by Filename
-func (p *Payload) Open() error {
-	file, err := os.Open(p.Filename)
-	if err != nil {
-		return err
-	}
-
-	p.file = file
-	return nil
-}
-
 func (p *Payload) readManifest() (*chromeos_update_engine.DeltaArchiveManifest, error) {
 	buf := make([]byte, p.header.ManifestLen)
 	if _, err := p.file.Read(buf); err != nil {
@@ -147,12 +139,8 @@ func (p *Payload) readManifest() (*chromeos_update_engine.DeltaArchiveManifest, 
 }
 
 func (p *Payload) readMetadataSignature() (*chromeos_update_engine.Signatures, error) {
-	if _, err := p.file.Seek(int64(p.header.Size+p.header.ManifestLen), 0); err != nil {
-		return nil, err
-	}
-
 	buf := make([]byte, p.header.MetadataSignatureLen)
-	if _, err := p.file.Read(buf); err != nil {
+	if _, err := p.file.ReadAt(buf, int64(p.header.Size+p.header.ManifestLen)); err != nil {
 		return nil, err
 	}
 	signatures := &chromeos_update_engine.Signatures{}

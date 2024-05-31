@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"runtime"
@@ -13,36 +12,20 @@ import (
 	"time"
 )
 
-func extractPayloadBin(filename string) string {
-	zipReader, err := zip.OpenReader(filename)
+func extractPayloadBin(data io.ReaderAt, size int64) FullReader {
+	zipReader, err := zip.NewReader(data, size)
 	if err != nil {
-		log.Fatalf("Not a valid zip archive: %s\n", filename)
+		log.Fatalf("Not a valid zip archive\n")
 	}
-	defer zipReader.Close()
 
-	for _, file := range zipReader.Reader.File {
+	for _, file := range zipReader.File {
 		if file.Name == "payload.bin" && file.UncompressedSize64 > 0 {
-			zippedFile, err := file.Open()
-			if err != nil {
-				log.Fatalf("Failed to read zipped file: %s\n", file.Name)
-			}
-
-			tempfile, err := ioutil.TempFile(os.TempDir(), "payload_*.bin")
-			if err != nil {
-				log.Fatalf("Failed to create a temp file located at %s\n", tempfile.Name())
-			}
-			defer tempfile.Close()
-
-			_, err = io.Copy(tempfile, zippedFile)
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			return tempfile.Name()
+			size, _ := file.DataOffset()
+			return io.NewSectionReader(data, size, int64(file.UncompressedSize64))
 		}
 	}
 
-	return ""
+	return nil
 }
 
 func main() {
@@ -74,22 +57,17 @@ func main() {
 
 	log.Printf("Delta: %s, partitions: %s\n", inputDirectory, partitions)
 
-	payloadBin := filename
+	payloadBin, _ := os.Open(filename)
+	var payloadReader FullReader = payloadBin
 	if strings.HasSuffix(filename, ".zip") {
-		fmt.Println("Please wait while extracting payload.bin from the archive.")
-		payloadBin = extractPayloadBin(filename)
-		if payloadBin == "" {
-			log.Fatal("Failed to extract payload.bin from the archive.")
-		} else {
-			defer os.Remove(payloadBin)
+		stat, _ := payloadBin.Stat()
+		payloadReader = extractPayloadBin(payloadBin, stat.Size())
+		if payloadReader == nil {
+			log.Fatal("Failed to find payload.bin from the archive.")
 		}
 	}
-	fmt.Printf("payload.bin: %s\n", payloadBin)
 
-	payload := NewPayload(payloadBin)
-	if err := payload.Open(); err != nil {
-		log.Fatal(err)
-	}
+	payload := NewPayload(payloadReader)
 	payload.Init()
 
 	if list {
