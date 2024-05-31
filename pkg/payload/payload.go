@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"compress/bzip2"
 	"crypto/sha256"
-	"encoding/binary"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -34,8 +33,9 @@ type request struct {
 
 // Payload is a new format for the Android OTA/Firmware update files since Android Oreo
 type Payload struct {
+	PayloadHeader
+
 	file                 FullReader
-	header               *payloadHeader
 	deltaArchiveManifest *DeltaArchiveManifest
 	signatures           *Signatures
 
@@ -48,61 +48,6 @@ type Payload struct {
 	requests chan *request
 	workerWG sync.WaitGroup
 	progress *mpb.Progress
-}
-
-const payloadHeaderMagic = "CrAU"
-const brilloMajorPayloadVersion = 2
-const blockSize = 4096
-
-type payloadHeader struct {
-	Version              uint64
-	ManifestLen          uint64
-	MetadataSignatureLen uint32
-	Size                 uint64
-
-	payload *Payload
-}
-
-func (ph *payloadHeader) ReadFromPayload() error {
-	buf := make([]byte, 4)
-	if _, err := ph.payload.file.Read(buf); err != nil {
-		return err
-	}
-	if string(buf) != payloadHeaderMagic {
-		return fmt.Errorf("Invalid payload magic: %s", buf)
-	}
-
-	// Read Version
-	buf = make([]byte, 8)
-	if _, err := ph.payload.file.Read(buf); err != nil {
-		return err
-	}
-	ph.Version = binary.BigEndian.Uint64(buf)
-	fmt.Printf("Payload Version: %d\n", ph.Version)
-
-	if ph.Version != brilloMajorPayloadVersion {
-		return fmt.Errorf("Unsupported payload version: %d", ph.Version)
-	}
-
-	// Read Manifest Len
-	buf = make([]byte, 8)
-	if _, err := ph.payload.file.Read(buf); err != nil {
-		return err
-	}
-	ph.ManifestLen = binary.BigEndian.Uint64(buf)
-	fmt.Printf("Payload Manifest Length: %d\n", ph.ManifestLen)
-
-	ph.Size = 24
-
-	// Read Manifest Signature Length
-	buf = make([]byte, 4)
-	if _, err := ph.payload.file.Read(buf); err != nil {
-		return err
-	}
-	ph.MetadataSignatureLen = binary.BigEndian.Uint32(buf)
-	fmt.Printf("Payload Manifest Signature Length: %d\n", ph.MetadataSignatureLen)
-
-	return nil
 }
 
 // NewPayload creates a new Payload struct
@@ -126,7 +71,7 @@ func (p *Payload) GetConcurrency() int {
 }
 
 func (p *Payload) readManifest() (*DeltaArchiveManifest, error) {
-	buf := make([]byte, p.header.ManifestLen)
+	buf := make([]byte, p.ManifestLen)
 	if _, err := p.file.Read(buf); err != nil {
 		return nil, err
 	}
@@ -139,8 +84,8 @@ func (p *Payload) readManifest() (*DeltaArchiveManifest, error) {
 }
 
 func (p *Payload) readMetadataSignature() (*Signatures, error) {
-	buf := make([]byte, p.header.MetadataSignatureLen)
-	if _, err := p.file.ReadAt(buf, int64(p.header.Size+p.header.ManifestLen)); err != nil {
+	buf := make([]byte, p.MetadataSignatureLen)
+	if _, err := p.file.ReadAt(buf, int64(p.Size+p.ManifestLen)); err != nil {
 		return nil, err
 	}
 	signatures := &Signatures{}
@@ -153,10 +98,7 @@ func (p *Payload) readMetadataSignature() (*Signatures, error) {
 
 func (p *Payload) Init() error {
 	// Read Header
-	p.header = &payloadHeader{
-		payload: p,
-	}
-	if err := p.header.ReadFromPayload(); err != nil {
+	if err := p.ReadPayloadHeader(p.file); err != nil {
 		return err
 	}
 
@@ -177,8 +119,8 @@ func (p *Payload) Init() error {
 	p.signatures = signatures
 
 	// Update sizes
-	p.metadataSize = int64(p.header.Size + p.header.ManifestLen)
-	p.dataOffset = p.metadataSize + int64(p.header.MetadataSignatureLen)
+	p.metadataSize = int64(p.Size + p.ManifestLen)
+	p.dataOffset = p.metadataSize + int64(p.MetadataSignatureLen)
 
 	fmt.Println("Found partitions:")
 	for i, partition := range p.deltaArchiveManifest.Partitions {
