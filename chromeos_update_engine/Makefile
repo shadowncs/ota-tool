@@ -1,5 +1,5 @@
-CXXFLAGS=-std=gnu++17
 CFLAGS=-I brotli/c/include -I. -Ibsdiff/include -Ipuffin/src/include -Izucchini/aosp/include -Ilibchrome -Igtest/include -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -Ibuild -ggdb
+CXXFLAGS=-std=gnu++17 $(CFLAGS)
 LDFLAGS=-Wl,--copy-dt-needed-entries -labsl_log_internal_check_op
 
 libs: build build/libbrotli.a build/libbspatch.a build/libbz2.a build/libpuffpatch.a build/libzucchini.a build/libchrome.a build/libprotobuf-lite.a build/third_party.a
@@ -10,7 +10,7 @@ build:
 build/%.o: %.cc
 	@ mkdir -p $(dir $@)
 	sed -zi 's/ *DVLOG[^;]*;\n//g' $<
-	$(CXX) $(CFLAGS) $(CXXFLAGS) -c -o $@ $< $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) -c -o $@ $< $(LDFLAGS)
 
 build/%.o: %.c
 	@ mkdir -p $(dir $@)
