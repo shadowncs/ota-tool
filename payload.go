@@ -13,10 +13,10 @@ import (
 	"sort"
 	"sync"
 
+	"github.com/EmilyShepherd/ota-tool/chromeos_update_engine"
 	humanize "github.com/dustin/go-humanize"
 	"github.com/golang/protobuf/proto"
 	xz "github.com/spencercw/go-xz"
-	"github.com/EmilyShepherd/ota-tool/chromeos_update_engine"
 	"github.com/vbauerster/mpb/v5"
 	"github.com/vbauerster/mpb/v5/decor"
 )
@@ -193,19 +193,6 @@ func (p *Payload) Init() error {
 	p.initialized = true
 
 	return nil
-}
-
-func (p *Payload) readDataBlob(offset int64, length int64) ([]byte, error) {
-	buf := make([]byte, length)
-	n, err := p.file.ReadAt(buf, p.dataOffset+offset)
-	if err != nil {
-		return nil, err
-	}
-	if int64(n) != length {
-		return nil, fmt.Errorf("Read length mismatch: %d != %d", n, length)
-	}
-
-	return buf, nil
 }
 
 func (p *Payload) Extract(partition *chromeos_update_engine.PartitionUpdate, out *os.File, in *os.File) error {
