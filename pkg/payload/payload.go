@@ -117,16 +117,6 @@ func (p *Payload) Init() error {
 	p.metadataSize = int64(p.Size + p.ManifestLen)
 	p.dataOffset = p.metadataSize + int64(p.MetadataSignatureLen)
 
-	fmt.Println("Found partitions:")
-	for i, partition := range p.Partitions {
-		fmt.Printf("%s (%s)", partition.GetPartitionName(), humanize.Bytes(*partition.GetNewPartitionInfo().Size))
-
-		if i < len(p.Partitions)-1 {
-			fmt.Printf(", ")
-		} else {
-			fmt.Printf("\n")
-		}
-	}
 	p.initialized = true
 
 	return nil
