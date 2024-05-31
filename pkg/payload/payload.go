@@ -12,7 +12,7 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/EmilyShepherd/ota-tool/chromeos_update_engine"
+	"github.com/EmilyShepherd/ota-tool/lib"
 	humanize "github.com/dustin/go-humanize"
 	"github.com/golang/protobuf/proto"
 	xz "github.com/spencercw/go-xz"
@@ -260,14 +260,14 @@ func (p *Payload) Extract(partition *PartitionUpdate, out *os.File, in *os.File)
 
 			switch operation.GetType() {
 			case InstallOperation_PUFFDIFF:
-				buf, err = chromeos_update_engine.ExecuteSourcePuffDiffOperation(buf, dataBuf, size)
+				buf, err = lib.ExecuteSourcePuffDiffOperation(buf, dataBuf, size)
 			case InstallOperation_ZUCCHINI:
-				buf, err = chromeos_update_engine.ExecuteSourceZucchiniOperation(buf, dataBuf, size)
+				buf, err = lib.ExecuteSourceZucchiniOperation(buf, dataBuf, size)
 			case InstallOperation_SOURCE_COPY:
 				// No processing is done for source copies - just a straight copy paste
 				break
 			default:
-				buf, err = chromeos_update_engine.ExecuteSourceBsdiffOperation(buf, dataBuf, size)
+				buf, err = lib.ExecuteSourceBsdiffOperation(buf, dataBuf, size)
 			}
 
 			if err != nil {

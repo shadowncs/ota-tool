@@ -1,4 +1,4 @@
-#include "update_engine.h"
+#include "cgo.h"
 #include <bsdiff/bspatch.h>
 #include <puffin/puffpatch.h>
 #include <puffin/brotli_util.h>
