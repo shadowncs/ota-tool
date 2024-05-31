@@ -1,8 +1,8 @@
 # OTA Tool
 
-A tool for working with Android OTAs.
+A tool for extracting or patching images from Android OTA payloads.
 
-This project is a form of [payload-dumper-go](https://github.com/ssut/payload-dumper-go).
+This project is a fork of [payload-dumper-go](https://github.com/ssut/payload-dumper-go).
 
 ## Features
 
@@ -13,14 +13,11 @@ See how fast payload-dumper-go is: https://imgur.com/a/X6HKJT4. (MacBook Pro 16-
 - Incredibly fast decompression. All decompression progresses are executed in parallel.
 - Payload checksum verification.
 - Support original zip package that contains payload.bin.
+- Incremental OTA (delta) payloads can be applied to old images.
 
 ### Cautions
 
 - Working on a SSD is highly recommended for performance reasons, a HDD could be a bottle-neck.
-
-### Limitations
-
-- Incremental OTA (delta) payload is not fully tested and probably broken.
 
 ## Installation
 
@@ -30,11 +27,11 @@ See how fast payload-dumper-go is: https://imgur.com/a/X6HKJT4. (MacBook Pro 16-
 
 1. Make sure the extracted binary file has executable permissions. You can use the following command to set the permissions if necessary:
 ```
-chmod +x payload-dumper-go
+chmod +x ota-tool
 ```
 2. Run the following command to add the directory path to your system's PATH environment variable:
 ```
-export PATH=$PATH:/path/to/payload-dumper-go
+export PATH=$PATH:/path/to/ota-tool
 ```
 Note: This command sets the PATH environment variable only for the current terminal session. To make it permanent, you need to add the command to your system's profile file (e.g. .bashrc or .zshrc for Linux/Unix systems).
 
@@ -51,8 +48,20 @@ Note: This command sets the PATH environment variable only for the current termi
 
 Run the following command in your terminal:
 ```
-payload-dumper-go /path/to/payload.bin
+Usage: ./ota-tool [options] [inputfile]
+  --concurrency int
+        Number of multiple workers to extract (default 4)
+  --input string
+        Set directory for existing partitions
+  --list
+        Show list of partitions in payload.bin and exit
+  --output string
+        Set output directory for partitions
+  --partitions string
+        Only work with selected partitions (comma-separated)
 ```
+
+Inputfile can either be a `payload.bin` or an uncompressed zip file containing a `payload.bin`.
 
 ## Sources
 
