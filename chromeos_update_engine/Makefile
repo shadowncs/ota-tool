@@ -2,7 +2,7 @@ CXXFLAGS=-std=gnu++17
 CFLAGS=-I brotli/c/include -I. -Ibsdiff/include -Ipuffin/src/include -Izucchini/aosp/include -Ilibchrome -Igtest/include -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -Ibuild -ggdb
 LDFLAGS=-Wl,--copy-dt-needed-entries -labsl_log_internal_check_op
 
-libs: build build/libbrotli.a build/libbspatch.a build/libbz2.a build/libpuffpatch.a build/libzucchini.a build/libchrome.a
+libs: build build/libbrotli.a build/libbspatch.a build/libbz2.a build/libpuffpatch.a build/libzucchini.a build/libchrome.a build/libprotobuf-lite.a build/third_party.a
 
 build:
 	mkdir -p $@
@@ -55,6 +55,15 @@ CHROME_OBJ=$(addprefix build/,$(CHROME_SRC:.cc=.o))
 
 build/libchrome.a: $(CHROME_OBJ)
 	$(AR) rcs $@ $^
+
+build/libprotobuf-lite.a: protobuf/libprotobuf-lite.a
+	cp $< $@
+
+build/third_party.a: protobuf/libprotobuf-lite.a
+	find protobuf/third_party -name '*.a' | xargs $(AR) -rcT $@
+
+protobuf/libprotobuf-lite.a:
+	make -C protobuf libprotobuf-lite
 
 ALL_OBJ=build/
 clean:

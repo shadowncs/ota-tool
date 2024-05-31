@@ -4,7 +4,7 @@ package chromeos_update_engine
 
 /*
 #cgo CXXFLAGS: -Ibsdiff/include -Ipuffin/src/include -Izucchini/aosp/include -Ilibchrome
-#cgo LDFLAGS: -labsl_log_internal_message -Lbuild -l:libpuffpatch.a -l:libbspatch.a -l:libzucchini.a -l:libbz2.a -l:libbrotli.a -l:libchrome.a -labsl_log_internal_check_op -lprotobuf
+#cgo LDFLAGS: -Lbuild -l:libpuffpatch.a -l:libzucchini.a  -l:libbspatch.a -l:libbz2.a -l:libbrotli.a -l:libchrome.a -l:libprotobuf-lite.a -l:third_party.a
 #include "update_engine.h"
 */
 import "C"

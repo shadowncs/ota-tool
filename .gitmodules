@@ -16,3 +16,6 @@
 [submodule "chromeos_update_engine/puffin"]
 	path = chromeos_update_engine/puffin
 	url = https://android.googlesource.com/platform/external/puffin
+[submodule "chromeos_update_engine/protobuf"]
+	path = chromeos_update_engine/protobuf
+	url = https://github.com/protocolbuffers/protobuf
