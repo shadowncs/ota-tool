@@ -34,10 +34,10 @@ type request struct {
 // Payload is a new format for the Android OTA/Firmware update files since Android Oreo
 type Payload struct {
 	PayloadHeader
+	DeltaArchiveManifest
 
-	file                 FullReader
-	deltaArchiveManifest *DeltaArchiveManifest
-	signatures           *Signatures
+	file       FullReader
+	signatures *Signatures
 
 	concurrency int
 
@@ -70,17 +70,16 @@ func (p *Payload) GetConcurrency() int {
 	return p.concurrency
 }
 
-func (p *Payload) readManifest() (*DeltaArchiveManifest, error) {
+func (p *Payload) readManifest() error {
 	buf := make([]byte, p.ManifestLen)
 	if _, err := p.file.Read(buf); err != nil {
-		return nil, err
+		return err
 	}
-	deltaArchiveManifest := &DeltaArchiveManifest{}
-	if err := proto.Unmarshal(buf, deltaArchiveManifest); err != nil {
-		return nil, err
+	if err := proto.Unmarshal(buf, p); err != nil {
+		return err
 	}
 
-	return deltaArchiveManifest, nil
+	return nil
 }
 
 func (p *Payload) readMetadataSignature() (*Signatures, error) {
@@ -103,11 +102,9 @@ func (p *Payload) Init() error {
 	}
 
 	// Read Manifest
-	deltaArchiveManifest, err := p.readManifest()
-	if err != nil {
+	if err := p.readManifest(); err != nil {
 		return err
 	}
-	p.deltaArchiveManifest = deltaArchiveManifest
 
 	// Read Signatures
 	signatures, err := p.readMetadataSignature()
@@ -121,10 +118,10 @@ func (p *Payload) Init() error {
 	p.dataOffset = p.metadataSize + int64(p.MetadataSignatureLen)
 
 	fmt.Println("Found partitions:")
-	for i, partition := range p.deltaArchiveManifest.Partitions {
+	for i, partition := range p.Partitions {
 		fmt.Printf("%s (%s)", partition.GetPartitionName(), humanize.Bytes(*partition.GetNewPartitionInfo().Size))
 
-		if i < len(deltaArchiveManifest.Partitions)-1 {
+		if i < len(p.Partitions)-1 {
 			fmt.Printf(", ")
 		} else {
 			fmt.Printf("\n")
@@ -352,7 +349,7 @@ func (p *Payload) ExtractSelected(sourceDirectory string, targetDirectory string
 
 	sort.Strings(partitions)
 
-	for _, partition := range p.deltaArchiveManifest.Partitions {
+	for _, partition := range p.Partitions {
 		if len(partitions) > 0 {
 			idx := sort.SearchStrings(partitions, *partition.PartitionName)
 			if idx == len(partitions) || partitions[idx] != *partition.PartitionName {
