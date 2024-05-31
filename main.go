@@ -56,16 +56,11 @@ func main() {
 		concurrency     int
 	)
 
-	flag.IntVar(&concurrency, "c", 4, "Number of multiple workers to extract (shorthand)")
 	flag.IntVar(&concurrency, "concurrency", 4, "Number of multiple workers to extract")
-	flag.BoolVar(&list, "l", false, "Show list of partitions in payload.bin (shorthand)")
-	flag.BoolVar(&list, "list", false, "Show list of partitions in payload.bin")
-	flag.StringVar(&outputDirectory, "o", "", "Set output directory (shorthand)")
-	flag.StringVar(&outputDirectory, "output", "", "Set output directory")
-	flag.StringVar(&inputDirectory, "d", "", "Set input directory for delta payload (shorthand)")
-	flag.StringVar(&inputDirectory, "delta", "", "Set input directory for delta payload")
-	flag.StringVar(&partitions, "p", "", "Dump only selected partitions (comma-separated) (shorthand)")
-	flag.StringVar(&partitions, "partitions", "", "Dump only selected partitions (comma-separated)")
+	flag.BoolVar(&list, "list", false, "Show list of partitions in payload.bin and exit")
+	flag.StringVar(&outputDirectory, "output", "", "Set output directory for partitions")
+	flag.StringVar(&inputDirectory, "input", "", "Set directory for existing partitions")
+	flag.StringVar(&partitions, "partitions", "", "Only work with selected partitions (comma-separated)")
 	flag.Parse()
 
 	if flag.NArg() == 0 {
