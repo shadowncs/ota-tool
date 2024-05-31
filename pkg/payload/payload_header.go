@@ -32,7 +32,6 @@ func (header *PayloadHeader) ReadPayloadHeader(data io.Reader) error {
 		return err
 	}
 	header.Version = binary.BigEndian.Uint64(buf)
-	fmt.Printf("Payload Version: %d\n", header.Version)
 
 	if header.Version != brilloMajorPayloadVersion {
 		return fmt.Errorf("Unsupported payload version: %d", header.Version)
@@ -44,7 +43,6 @@ func (header *PayloadHeader) ReadPayloadHeader(data io.Reader) error {
 		return err
 	}
 	header.ManifestLen = binary.BigEndian.Uint64(buf)
-	fmt.Printf("Payload Manifest Length: %d\n", header.ManifestLen)
 
 	header.Size = 24
 
@@ -54,7 +52,6 @@ func (header *PayloadHeader) ReadPayloadHeader(data io.Reader) error {
 		return err
 	}
 	header.MetadataSignatureLen = binary.BigEndian.Uint32(buf)
-	fmt.Printf("Payload Manifest Signature Length: %d\n", header.MetadataSignatureLen)
 
 	return nil
 }

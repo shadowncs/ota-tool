@@ -109,8 +109,6 @@ func (p *Payload) Init() error {
 	}
 	p.deltaArchiveManifest = deltaArchiveManifest
 
-	fmt.Printf("Payload Minor Version: %d\n", deltaArchiveManifest.GetMinorVersion())
-
 	// Read Signatures
 	signatures, err := p.readMetadataSignature()
 	if err != nil {

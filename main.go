@@ -89,7 +89,6 @@ func main() {
 	}
 	var sourceDirectory = inputDirectory
 	payload.SetConcurrency(concurrency)
-	fmt.Printf("Number of workers: %d\n", payload.GetConcurrency())
 
 	if partitions != "" {
 		if err := payload.ExtractSelected(sourceDirectory, targetDirectory, strings.Split(partitions, ",")); err != nil {
