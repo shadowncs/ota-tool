@@ -77,6 +77,7 @@ go build .
 - protoc
 - golang
 - make
+- cmake
 - gcc (or another C compiler)
 - g++ (or another C++ compiler)
 
