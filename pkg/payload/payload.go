@@ -1,4 +1,4 @@
-package main
+package payload
 
 import (
 	"bytes"
@@ -27,7 +27,7 @@ type FullReader interface {
 }
 
 type request struct {
-	partition       *chromeos_update_engine.PartitionUpdate
+	partition       *PartitionUpdate
 	sourceDirectory string
 	targetDirectory string
 }
@@ -36,8 +36,8 @@ type request struct {
 type Payload struct {
 	file                 FullReader
 	header               *payloadHeader
-	deltaArchiveManifest *chromeos_update_engine.DeltaArchiveManifest
-	signatures           *chromeos_update_engine.Signatures
+	deltaArchiveManifest *DeltaArchiveManifest
+	signatures           *Signatures
 
 	concurrency int
 
@@ -125,12 +125,12 @@ func (p *Payload) GetConcurrency() int {
 	return p.concurrency
 }
 
-func (p *Payload) readManifest() (*chromeos_update_engine.DeltaArchiveManifest, error) {
+func (p *Payload) readManifest() (*DeltaArchiveManifest, error) {
 	buf := make([]byte, p.header.ManifestLen)
 	if _, err := p.file.Read(buf); err != nil {
 		return nil, err
 	}
-	deltaArchiveManifest := &chromeos_update_engine.DeltaArchiveManifest{}
+	deltaArchiveManifest := &DeltaArchiveManifest{}
 	if err := proto.Unmarshal(buf, deltaArchiveManifest); err != nil {
 		return nil, err
 	}
@@ -138,12 +138,12 @@ func (p *Payload) readManifest() (*chromeos_update_engine.DeltaArchiveManifest, 
 	return deltaArchiveManifest, nil
 }
 
-func (p *Payload) readMetadataSignature() (*chromeos_update_engine.Signatures, error) {
+func (p *Payload) readMetadataSignature() (*Signatures, error) {
 	buf := make([]byte, p.header.MetadataSignatureLen)
 	if _, err := p.file.ReadAt(buf, int64(p.header.Size+p.header.ManifestLen)); err != nil {
 		return nil, err
 	}
-	signatures := &chromeos_update_engine.Signatures{}
+	signatures := &Signatures{}
 	if err := proto.Unmarshal(buf, signatures); err != nil {
 		return nil, err
 	}
@@ -195,7 +195,7 @@ func (p *Payload) Init() error {
 	return nil
 }
 
-func (p *Payload) Extract(partition *chromeos_update_engine.PartitionUpdate, out *os.File, in *os.File) error {
+func (p *Payload) Extract(partition *PartitionUpdate, out *os.File, in *os.File) error {
 	name := partition.GetPartitionName()
 	info := partition.GetNewPartitionInfo()
 	isDelta := in != nil
@@ -233,22 +233,22 @@ func (p *Payload) Extract(partition *chromeos_update_engine.PartitionUpdate, out
 		var reader io.Reader
 
 		switch operation.GetType() {
-		case chromeos_update_engine.InstallOperation_REPLACE_XZ:
+		case InstallOperation_REPLACE_XZ:
 			read := xz.NewDecompressionReader(teeReader)
 			reader = &read
-		case chromeos_update_engine.InstallOperation_REPLACE_BZ:
+		case InstallOperation_REPLACE_BZ:
 			reader = bzip2.NewReader(teeReader)
-		case chromeos_update_engine.InstallOperation_ZERO:
+		case InstallOperation_ZERO:
 			reader = bytes.NewReader(make([]byte, expectedUncompressedBlockSize))
 		default:
 			reader = teeReader
 		}
 
 		switch operation.GetType() {
-		case chromeos_update_engine.InstallOperation_REPLACE,
-			chromeos_update_engine.InstallOperation_ZERO,
-			chromeos_update_engine.InstallOperation_REPLACE_XZ,
-			chromeos_update_engine.InstallOperation_REPLACE_BZ:
+		case InstallOperation_REPLACE,
+			InstallOperation_ZERO,
+			InstallOperation_REPLACE_XZ,
+			InstallOperation_REPLACE_BZ:
 
 			n, err := io.Copy(out, reader)
 			if err != nil {
@@ -263,12 +263,12 @@ func (p *Payload) Extract(partition *chromeos_update_engine.PartitionUpdate, out
 				return fmt.Errorf("Verify failed (Unexpected bytes written): %s (%d != %d)", name, n, expectedUncompressedBlockSize)
 			}
 
-		case chromeos_update_engine.InstallOperation_SOURCE_BSDIFF,
-			chromeos_update_engine.InstallOperation_BSDIFF,
-			chromeos_update_engine.InstallOperation_BROTLI_BSDIFF,
-			chromeos_update_engine.InstallOperation_PUFFDIFF,
-			chromeos_update_engine.InstallOperation_ZUCCHINI,
-			chromeos_update_engine.InstallOperation_SOURCE_COPY:
+		case InstallOperation_SOURCE_BSDIFF,
+			InstallOperation_BSDIFF,
+			InstallOperation_BROTLI_BSDIFF,
+			InstallOperation_PUFFDIFF,
+			InstallOperation_ZUCCHINI,
+			InstallOperation_SOURCE_COPY:
 
 			if !isDelta {
 				return fmt.Errorf("%s: %s is only supported for delta", name, operation.GetType().String())
@@ -319,11 +319,11 @@ func (p *Payload) Extract(partition *chromeos_update_engine.PartitionUpdate, out
 			var err error
 
 			switch operation.GetType() {
-			case chromeos_update_engine.InstallOperation_PUFFDIFF:
+			case InstallOperation_PUFFDIFF:
 				buf, err = chromeos_update_engine.ExecuteSourcePuffDiffOperation(buf, dataBuf, size)
-			case chromeos_update_engine.InstallOperation_ZUCCHINI:
+			case InstallOperation_ZUCCHINI:
 				buf, err = chromeos_update_engine.ExecuteSourceZucchiniOperation(buf, dataBuf, size)
-			case chromeos_update_engine.InstallOperation_SOURCE_COPY:
+			case InstallOperation_SOURCE_COPY:
 				// No processing is done for source copies - just a straight copy paste
 				break
 			default:

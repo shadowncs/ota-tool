@@ -95,7 +95,7 @@
 // 	protoc        v5.27.0--dev
 // source: update_metadata.proto
 
-package chromeos_update_engine
+package payload
 
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"

@@ -10,9 +10,11 @@ import (
 	"runtime"
 	"strings"
 	"time"
+
+	"github.com/EmilyShepherd/ota-tool/pkg/payload"
 )
 
-func extractPayloadBin(data io.ReaderAt, size int64) FullReader {
+func extractPayloadBin(data io.ReaderAt, size int64) payload.FullReader {
 	zipReader, err := zip.NewReader(data, size)
 	if err != nil {
 		log.Fatalf("Not a valid zip archive\n")
@@ -58,7 +60,7 @@ func main() {
 	log.Printf("Delta: %s, partitions: %s\n", inputDirectory, partitions)
 
 	payloadBin, _ := os.Open(filename)
-	var payloadReader FullReader = payloadBin
+	var payloadReader payload.FullReader = payloadBin
 	if strings.HasSuffix(filename, ".zip") {
 		stat, _ := payloadBin.Stat()
 		payloadReader = extractPayloadBin(payloadBin, stat.Size())
@@ -67,7 +69,7 @@ func main() {
 		}
 	}
 
-	payload := NewPayload(payloadReader)
+	payload := payload.NewPayload(payloadReader)
 	payload.Init()
 
 	if list {
