@@ -1,10 +1,8 @@
 package main
 
 import (
-	"archive/zip"
 	"flag"
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"runtime"
@@ -16,22 +14,6 @@ import (
 
 	"github.com/EmilyShepherd/ota-tool/pkg/payload"
 )
-
-func extractPayloadBin(data io.ReaderAt, size int64) payload.FullReader {
-	zipReader, err := zip.NewReader(data, size)
-	if err != nil {
-		log.Fatalf("Not a valid zip archive\n")
-	}
-
-	for _, file := range zipReader.File {
-		if file.Name == "payload.bin" && file.UncompressedSize64 > 0 {
-			size, _ := file.DataOffset()
-			return io.NewSectionReader(data, size, int64(file.UncompressedSize64))
-		}
-	}
-
-	return nil
-}
 
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
@@ -60,23 +42,27 @@ func main() {
 		log.Fatalf("File does not exist: %s\n", filename)
 	}
 
-	payloadBin, _ := os.Open(filename)
-	var payloadReader payload.FullReader = payloadBin
+	var update *payload.Payload
+	var err error
+
 	if strings.HasSuffix(filename, ".zip") {
-		stat, _ := payloadBin.Stat()
-		payloadReader = extractPayloadBin(payloadBin, stat.Size())
-		if payloadReader == nil {
-			log.Fatal("Failed to find payload.bin from the archive.")
-		}
+		update, err = payload.NewPayloadFromZipFile(filename)
+	} else {
+		f, _ := os.Open(filename)
+		update = payload.NewPayload(f)
 	}
 
-	payload := payload.NewPayload(payloadReader)
-	payload.Init()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	update.Init()
 
 	if list {
 		table := tablewriter.NewWriter(os.Stdout)
 		table.SetHeader([]string{"Partition", "Old Size", "New Size"})
-		for _, partition := range payload.Partitions {
+		for _, partition := range update.Partitions {
 			table.Append([]string{
 				partition.GetPartitionName(),
 				humanize.Bytes(*partition.GetOldPartitionInfo().Size),
@@ -100,14 +86,14 @@ func main() {
 		}
 	}
 	var sourceDirectory = inputDirectory
-	payload.SetConcurrency(concurrency)
+	update.SetConcurrency(concurrency)
 
 	if partitions != "" {
-		if err := payload.ExtractSelected(sourceDirectory, targetDirectory, strings.Split(partitions, ",")); err != nil {
+		if err := update.ExtractSelected(sourceDirectory, targetDirectory, strings.Split(partitions, ",")); err != nil {
 			log.Fatal(err)
 		}
 	} else {
-		if err := payload.ExtractAll(sourceDirectory, targetDirectory); err != nil {
+		if err := update.ExtractAll(sourceDirectory, targetDirectory); err != nil {
 			log.Fatal(err)
 		}
 	}

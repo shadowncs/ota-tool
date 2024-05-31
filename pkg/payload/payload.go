@@ -51,13 +51,13 @@ type Payload struct {
 }
 
 // NewPayload creates a new Payload struct
-func NewPayload(file FullReader) Payload {
+func NewPayload(file FullReader) *Payload {
 	payload := Payload{
 		file:        file,
 		concurrency: 4,
 	}
 
-	return payload
+	return &payload
 }
 
 // SetConcurrency sets number of workers
