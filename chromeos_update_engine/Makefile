@@ -1,6 +1,6 @@
-CFLAGS=-I brotli/c/include -I. -Ibsdiff/include -Ipuffin/src/include -Izucchini/aosp/include -Ilibchrome -Igtest/include -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -Ibuild -ggdb
+CFLAGS=-I brotli/c/include -I. -Ibsdiff/include -Ipuffin/src/include -Izucchini/aosp/include -Ilibchrome -Igtest/include -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -Ibuild -ggdb -Iprotobuf/src -Iprotobuf/third_party/abseil-cpp
 CXXFLAGS=-std=gnu++17 $(CFLAGS)
-LDFLAGS=-Wl,--copy-dt-needed-entries -labsl_log_internal_check_op
+LDFLAGS=-Wl,--copy-dt-needed-entries
 
 libs: build build/libbrotli.a build/libbspatch.a build/libbz2.a build/libpuffpatch.a build/libzucchini.a build/libchrome.a build/libprotobuf-lite.a build/third_party.a
 

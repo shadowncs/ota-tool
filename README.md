@@ -68,14 +68,13 @@ go build .
 
 ### Build Deps
 
-- protobuf
-- protobuf-devel
 - glib-devel
 - libevent-devel
 - liblzma-devel
 
 ### Build Toolchain
 
+- protoc
 - golang
 - make
 - gcc (or another C compiler)
