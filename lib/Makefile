@@ -1,4 +1,14 @@
-CFLAGS=-I brotli/c/include -I. -Ibsdiff/include -Ipuffin/src/include -Izucchini/aosp/include -Ilibchrome -Igtest/include -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -Ibuild -ggdb -Iprotobuf/src -Iprotobuf/third_party/abseil-cpp
+CFLAGS=\
+	-I . \
+	-I build \
+	-I brotli/c/include \
+	-I bsdiff/include \
+	-I puffin/src/include \
+	-I zucchini/aosp/include \
+	-I libchrome \
+	-I protobuf/src \
+	-I protobuf/third_party/abseil-cpp
+
 CXXFLAGS=-std=gnu++17 $(CFLAGS)
 LDFLAGS=-Wl,--copy-dt-needed-entries
 
