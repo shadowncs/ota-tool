@@ -6,7 +6,7 @@
 	url = https://github.com/anonymix007/bsdiff
 [submodule "chromeos_update_engine/bzip2"]
 	path = lib/bzip2
-	url = https://github.com/anonymix007/bzip2
+	url = https://gitlab.com/bzip2/bzip2.git
 [submodule "chromeos_update_engine/libchrome"]
 	path = lib/libchrome
 	url = https://github.com/anonymix007/libchrome
