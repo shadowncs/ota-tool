@@ -9,7 +9,10 @@ build:
 
 build/%.o: %.cc
 	@ mkdir -p $(dir $@)
-	sed -zi 's/ *DVLOG[^;]*;\n//g' $<
+	# Need to replace the LOG statement with a single ; so that a
+	# statement still exists. This is because some LOG calls are in an
+	# if/else block without brackets.
+	sed -zi 's/\(\n *\)[A-Z_]*LOG[^;]*;\n/\1;\n/g' $<
 	$(CXX) $(CXXFLAGS) -c -o $@ $< $(LDFLAGS)
 
 build/%.o: %.c
