@@ -1,6 +1,6 @@
 [submodule "chromeos_update_engine/brotli"]
 	path = lib/brotli
-	url = https://github.com/anonymix007/brotli
+	url = https://github.com/google/brotli.git
 [submodule "chromeos_update_engine/bsdiff"]
 	path = lib/bsdiff
 	url = https://github.com/anonymix007/bsdiff
