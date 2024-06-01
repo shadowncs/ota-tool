@@ -7,12 +7,14 @@ libs: build build/libbrotli.a build/libbspatch.a build/libbz2.a build/libpuffpat
 build:
 	mkdir -p $@
 
-build/%.o: %.cc
+# Need to replace the LOG statement with a single ; so that a statement
+# still exists. This is because some LOG calls are in an if/else block
+# without brackets.
+build/%.cc: %.cc
 	@ mkdir -p $(dir $@)
-	# Need to replace the LOG statement with a single ; so that a
-	# statement still exists. This is because some LOG calls are in an
-	# if/else block without brackets.
-	sed -zi 's/\(\n *\)[A-Z_]*LOG[^;]*;\n/\1;\n/g' $<
+	sed -z 's/\(\n *\)[A-Z_]*LOG[^;]*;\n/\1;\n/g' $< > $@
+
+build/%.o: build/%.cc
 	$(CXX) $(CXXFLAGS) -c -o $@ $< $(LDFLAGS)
 
 build/%.o: %.c
