@@ -124,15 +124,18 @@ puffin/src/puffpatch.cc: build/puffin/src/puffin.pb.cc
 build/puffin/src/puffin.pb.cc: puffin/src/puffin.proto
 	protoc -I=puffin/src/ --cpp_out=build/puffin/src/ $^
 
-build/libprotobuf-lite.a: protobuf/libprotobuf-lite.a
+build/third_party.a: build/protobuf/libprotobuf-lite.a
+	@ find build/protobuf/third_party -name '*.a' | xargs $(AR) -rcT $@
+	@ echo [AR] $@
+
+build/libprotobuf-lite.a: build/protobuf/libprotobuf-lite.a
 	cp $< $@
 
-build/third_party.a: protobuf/libprotobuf-lite.a
-	find protobuf/third_party -name '*.a' | xargs $(AR) -rcT $@
+build/protobuf/libprotobuf-lite.a: build/protobuf/Makefile
+	make -C build/protobuf libprotobuf-lite
 
-protobuf/libprotobuf-lite.a:
-	cmake -S protobuf -B protobuf
-	make -C protobuf libprotobuf-lite
+build/protobuf/Makefile:
+	cmake -S protobuf -B build/protobuf
 
 ALL_OBJ=build/
 clean:
