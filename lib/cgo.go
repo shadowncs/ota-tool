@@ -4,7 +4,7 @@ package lib
 
 /*
 #cgo CXXFLAGS: -Ibsdiff/include -Ipuffin/src/include -Izucchini/aosp/include -Ilibchrome -Iprotobuf/third_party/abseil-cpp
-#cgo LDFLAGS: -Lbuild -l:libpuffpatch.a -l:libzucchini.a  -l:libbspatch.a -l:libbz2.a -l:libbrotli.a -l:libchrome.a -l:libprotobuf-lite.a -l:third_party.a
+#cgo LDFLAGS: -Lbuild -l:combined.a -l:libprotobuf-lite.a -l:third_party.a
 #include "cgo.h"
 */
 import "C"
