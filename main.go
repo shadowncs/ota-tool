@@ -1,106 +1,18 @@
 package main
 
 import (
-	"flag"
-	"fmt"
-	"log"
 	"os"
 	"runtime"
-	"strings"
-	"time"
 
-	humanize "github.com/dustin/go-humanize"
-	"github.com/olekukonko/tablewriter"
-
-	"github.com/EmilyShepherd/ota-tool/pkg/payload"
+	"github.com/EmilyShepherd/ota-tool/cmd"
+	"github.com/EmilyShepherd/ota-tool/pkg/command"
 )
 
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
-	var (
-		list            bool
-		partitions      string
-		outputDirectory string
-		inputDirectory  string
-		concurrency     int
-	)
-
-	flag.IntVar(&concurrency, "concurrency", 4, "Number of multiple workers to extract")
-	flag.BoolVar(&list, "list", false, "Show list of partitions in payload.bin and exit")
-	flag.StringVar(&outputDirectory, "output", "", "Set output directory for partitions")
-	flag.StringVar(&inputDirectory, "input", "", "Set directory for existing partitions")
-	flag.StringVar(&partitions, "partitions", "", "Only work with selected partitions (comma-separated)")
-	flag.Parse()
-
-	if flag.NArg() == 0 {
-		usage()
-	}
-	filename := flag.Arg(0)
-
-	if _, err := os.Stat(filename); os.IsNotExist(err) {
-		log.Fatalf("File does not exist: %s\n", filename)
-	}
-
-	var update *payload.Payload
-	var err error
-
-	if strings.HasSuffix(filename, ".zip") {
-		update, err = payload.NewPayloadFromZipFile(filename)
-	} else {
-		f, _ := os.Open(filename)
-		update = payload.NewPayload(f)
-	}
-
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	update.Init()
-
-	if list {
-		table := tablewriter.NewWriter(os.Stdout)
-		table.SetHeader([]string{"Partition", "Old Size", "New Size"})
-		for _, partition := range update.Partitions {
-			table.Append([]string{
-				partition.GetPartitionName(),
-				humanize.Bytes(*partition.GetOldPartitionInfo().Size),
-				humanize.Bytes(*partition.GetNewPartitionInfo().Size),
-			})
-		}
-		table.SetBorder(false)
-		table.Render()
-		return
-	}
-
-	now := time.Now()
-
-	var targetDirectory = outputDirectory
-	if targetDirectory == "" {
-		targetDirectory = fmt.Sprintf("extracted_%d%02d%02d_%02d%02d%02d", now.Year(), now.Month(), now.Day(), now.Hour(), now.Minute(), now.Second())
-	}
-	if _, err := os.Stat(targetDirectory); os.IsNotExist(err) {
-		if err := os.Mkdir(targetDirectory, 0755); err != nil {
-			log.Fatal("Failed to create target directory")
-		}
-	}
-	var sourceDirectory = inputDirectory
-	update.SetConcurrency(concurrency)
-
-	if partitions != "" {
-		if err := update.ExtractSelected(sourceDirectory, targetDirectory, strings.Split(partitions, ",")); err != nil {
-			log.Fatal(err)
-		}
-	} else {
-		if err := update.ExtractAll(sourceDirectory, targetDirectory); err != nil {
-			log.Fatal(err)
-		}
-	}
-}
-
-func usage() {
-	fmt.Fprintf(os.Stderr, "Usage: %s [options] [inputfile]\n", os.Args[0])
-	flag.PrintDefaults()
-	os.Exit(2)
+	root := command.Group{}
+	root.Register("list", &cmd.List{})
+	root.Register("apply", &cmd.Apply{})
+	root.Execute(os.Args[1:])
 }
