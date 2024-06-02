@@ -118,25 +118,25 @@ build/%.cc: %.cc
 	@ sed -z 's/\(\n *\)[A-Z_]*LOG[^;]*;\n/\1;\n/g' $< > $@
 
 build/%.o: build/%.cc
+	@ echo "[CPP]\t$@"
 	@ $(CXX) $(CXXFLAGS) -c -o $@ $< $(LDFLAGS)
-	@ echo [CPP] $@
 
 build/%.o: %.c
+	@ echo "[CC]\t$@"
 	@ mkdir -p $(dir $@)
 	@ $(CC) $(CFLAGS) -c -o $@ $< $(LDFLAGS)
-	@ echo [CC] $@
 
 build/combined.a: $(ALL_OBJ)
+	@ echo "[AR]\t$@"
 	@ $(AR) rcs $@ $^
-	@ echo [AR] $@
 
-puffin/src/puffpatch.cc: build/puffin/src/puffin.pb.cc
 build/puffin/src/puffin.pb.cc: puffin/src/puffin.proto
-	protoc -I=puffin/src/ --cpp_out=build/puffin/src/ $^
+	@ echo "[PROTO]\t$^"
+	@ protoc -I=puffin/src/ --cpp_out=build/puffin/src/ $^
 
 build/third_party.a: build/protobuf/libprotobuf-lite.a
+	@ echo "[AR]\t$@"
 	@ find build/protobuf/third_party -name '*.a' | xargs $(AR) -rcT $@
-	@ echo [AR] $@
 
 build/libprotobuf-lite.a: build/protobuf/libprotobuf-lite.a
 	cp $< $@
