@@ -14,5 +14,6 @@ func main() {
 	root := command.Group{}
 	root.Register("list", &cmd.List{})
 	root.Register("apply", &cmd.Apply{})
+	root.Register("show", &cmd.Show{})
 	root.Execute(os.Args[1:])
 }
