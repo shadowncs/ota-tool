@@ -5,6 +5,7 @@ CFLAGS=\
 	-I bsdiff/include \
 	-I puffin/src/include \
 	-I zucchini/aosp/include \
+	-I bzip2 \
 	-I libchrome \
 	-I protobuf/src \
 	-I protobuf/third_party/abseil-cpp
