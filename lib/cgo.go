@@ -69,3 +69,15 @@ func ExecuteSourceZucchiniOperation(data []byte, patch []byte, size int64) ([]by
 
 	return output, nil
 }
+
+func Bzip2Decompress(data []byte, size int64) ([]byte, error) {
+	output := make([]byte, size)
+	result := int(C.Bzip2Decompress(
+		unsafe.Pointer(&data[0]), C.ulong(len(data)),
+		unsafe.Pointer(&output[0]), C.uint(len(output)),
+	))
+
+	fmt.Println(result)
+
+	return output, nil
+}

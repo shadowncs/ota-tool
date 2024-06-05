@@ -2,7 +2,6 @@ package payload
 
 import (
 	"bytes"
-	"compress/bzip2"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
@@ -163,8 +162,6 @@ func (p *Payload) Extract(partition *PartitionUpdate, out *os.File, in *os.File)
 		case InstallOperation_REPLACE_XZ:
 			read := xz.NewDecompressionReader(teeReader)
 			reader = &read
-		case InstallOperation_REPLACE_BZ:
-			reader = bzip2.NewReader(teeReader)
 		case InstallOperation_ZERO:
 			reader = bytes.NewReader(make([]byte, expectedUncompressedBlockSize))
 		default:
@@ -172,10 +169,14 @@ func (p *Payload) Extract(partition *PartitionUpdate, out *os.File, in *os.File)
 		}
 
 		switch operation.GetType() {
+		case InstallOperation_REPLACE_BZ:
+			data := make([]byte, dataLength)
+			reader.Read(data)
+			decompressed, _ := lib.Bzip2Decompress(data, expectedUncompressedBlockSize)
+			out.Write(decompressed)
 		case InstallOperation_REPLACE,
 			InstallOperation_ZERO,
-			InstallOperation_REPLACE_XZ,
-			InstallOperation_REPLACE_BZ:
+			InstallOperation_REPLACE_XZ:
 
 			n, err := io.Copy(out, reader)
 			if err != nil {

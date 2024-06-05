@@ -1,4 +1,5 @@
 #include "cgo.h"
+#include <bzlib.h>
 #include <bsdiff/bspatch.h>
 #include <puffin/puffpatch.h>
 #include <puffin/brotli_util.h>
@@ -65,4 +66,8 @@ extern "C" int64_t ExecuteSourceZucchiniOperation(void *data, size_t data_size,
 	}
 
 	return zucchini::ApplyBuffer(old_image, *patch_reader, new_image);
+}
+
+extern "C" int Bzip2Decompress(void *data, size_t data_size, void *output, uint32_t output_size) {
+  return BZ2_bzBuffToBuffDecompress((char*)output, &output_size, (char*)data, data_size, 0, 0);
 }
