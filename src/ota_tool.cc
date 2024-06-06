@@ -28,20 +28,20 @@ INIT_FUNC(list) {
 }
 
 INIT_FUNC(apply) {
-  if (argc < 3) {
+  if (argc < 4) {
     usage(argc, argv);
     return 1;
   }
 
   FILE *f = fopen(argv[2], "rb");
   FILE *out = fopen("/tmp/out", "wc");
-  FILE *in = fopen("/home/emily/dev/r1/dumps/system.img", "rb");
+  FILE *in = fopen(argv[4], "rb");
 
   payload update;
   init_payload(&update, f);
 
   for (int j = 0; j < update.manifest.partitions_size(); j++) {
-    if (update.manifest.partitions(j).partition_name() == "system") {
+    if (update.manifest.partitions(j).partition_name() == argv[3]) {
       apply_partition(&update, &update.manifest.partitions(j), f, in, out);
       break;
     }
