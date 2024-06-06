@@ -75,6 +75,13 @@ int64_t ExecuteSourceZucchiniOperation(void *data, size_t data_size,
 	return zucchini::ApplyBuffer(old_image, *patch_reader, new_image);
 }
 
+void sha256_bytes(char *data, unsigned int data_size, BYTE *hash) {
+  SHA256_CTX ctx;
+  sha256_init(&ctx);
+  sha256_update(&ctx, (const BYTE*)data, data_size);
+  sha256_final(&ctx, hash);
+}
+
 void apply_partition(
     payload *update,
     const chromeos_update_engine::PartitionUpdate *p,
@@ -87,7 +94,7 @@ void apply_partition(
 
     fseek(data_file, update->data_offset + op.data_offset(), SEEK_SET);
 
-    const char hash[32] = {0};
+    BYTE hash[32] = {0};
     unsigned int output_size, src_size;
     char *output;
     char *src = get_src(in_file, &src_size, &op);
@@ -97,14 +104,14 @@ void apply_partition(
     size_t out = 0;
 
     if (op.has_src_sha256_hash()) {
-      sha256_bytes(src, src_size, (void *)hash);
-      if (strncmp(hash, op.src_sha256_hash().data(), 32) != 0) {
+      sha256_bytes(src, src_size, hash);
+      if (memcmp(hash, op.src_sha256_hash().data(), 32) != 0) {
         std::cerr << "Source Hash Mismatch\n";
       }
     }
     if (op.has_data_sha256_hash()) {
-      sha256_bytes(data, op.data_length(), (void *)hash);
-      if (strncmp(hash, op.data_sha256_hash().data(), 32) != 0) {
+      sha256_bytes(data, op.data_length(), hash);
+      if (memcmp(hash, op.data_sha256_hash().data(), 32) != 0) {
         std::cerr << "Data Hash Mismatch\n";
       }
     }
