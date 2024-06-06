@@ -14,24 +14,77 @@ extern "C" {
 #include "sha256.h"
 }
 
+class PuffinDataStream : public puffin::StreamInterface {
+ public:
+   PuffinDataStream(void *data, uint64_t size, bool is_read)
+      : data_(data),
+        size_(size),
+        offset_(0),
+        is_read_(is_read) {}
+
+  ~PuffinDataStream() override = default;
+
+  bool GetSize(uint64_t* size) const override {
+    *size = size_;
+    return true;
+  }
+
+  bool GetOffset(uint64_t* offset) const override {
+    *offset = offset_;
+    return true;
+  }
+
+  bool Seek(uint64_t offset) override {
+    if (offset > size_) {
+      return false;
+    }
+
+    offset_ = offset;
+    return true;
+  }
+
+  bool Read(void* buffer, size_t count) override {
+    if (offset_ + count > size_) return false;
+
+    void *point = data_ + offset_;
+    std::memcpy(buffer, point, count);
+    offset_ += count;
+    return true;
+  }
+
+  bool Write(const void* buffer, size_t count) override {
+    if (offset_ + count > size_) return false;
+
+    void *point = data_ + offset_;
+    std::memcpy(point, buffer, count);
+    offset_ += count;
+    return true;
+  }
+
+  bool Close() override { return true; }
+
+ private:
+
+  void *data_;
+  uint64_t size_;
+  uint64_t offset_;
+  bool is_read_;
+
+  DISALLOW_COPY_AND_ASSIGN(PuffinDataStream);
+};
+
+
+
 int64_t ExecuteSourcePuffDiffOperation(void *data, size_t data_size,
-    void *patch, size_t patch_size,
-    void *output, size_t output_size) {
-  constexpr size_t kMaxCacheSize = 5 * 1024 * 1024;  // Total 5MB cache.
-                                                     //
-                                                     //
-  puffin::Buffer src_buf, dst_buf;
-  src_buf.assign((uint8_t*)data, (uint8_t*)data + data_size);
-  dst_buf.assign((uint8_t*)output, (uint8_t*)output + output_size);
+                                              void *patch, size_t patch_size,
+                                              void *output, size_t output_size) {
+    constexpr size_t kMaxCacheSize = 5 * 1024 * 1024;  // Total 5MB cache.
 
-  return puffin::PuffPatch(
-    puffin::MemoryStream::CreateForRead(src_buf),
-    puffin::MemoryStream::CreateForWrite(&dst_buf),
-    (const uint8_t *) patch, patch_size,
-    kMaxCacheSize
-  ) ? output_size : -1;
+    puffin::UniqueStreamPtr src(new PuffinDataStream(data, data_size, true));
+    puffin::UniqueStreamPtr dst(new PuffinDataStream(output, output_size, false));
+
+    return puffin::PuffPatch(std::move(src), std::move(dst), (const uint8_t *) patch, patch_size, kMaxCacheSize) ? output_size : -1;
 }
-
 
 int64_t ExecuteSourceBsdiffOperation(void *data, size_t data_size,
                                             void *patch, size_t patch_size,
@@ -164,4 +217,5 @@ void apply_partition(
     }
   }
 }
+
 
