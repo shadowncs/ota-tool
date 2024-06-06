@@ -3,10 +3,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "payload.h"
 
 int64_t ExecuteSourceBsdiffOperation(void *data, size_t data_size,
                                      void *patch, size_t patch_size,
@@ -23,10 +20,13 @@ int64_t ExecuteSourceZucchiniOperation(void *data, size_t data_size,
 
 int Bzip2Decompress(void *data, size_t data_size, void *output, uint32_t output_size);
 
-void show();
+void apply_partition(
+    payload *update,
+    const chromeos_update_engine::PartitionUpdate *p,
+    FILE *data_file,
+    FILE *in_file,
+    FILE *out_file
+  );
 
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* BSDIFF4_IMPL_H */
