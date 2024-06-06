@@ -23,6 +23,8 @@ int64_t ExecuteSourceZucchiniOperation(void *data, size_t data_size,
 
 int Bzip2Decompress(void *data, size_t data_size, void *output, uint32_t output_size);
 
+void show();
+
 #ifdef __cplusplus
 }
 #endif
