@@ -12,7 +12,8 @@ CFLAGS=\
 	-I lib/bzip2 \
 	-I lib/libchrome \
 	-I lib/protobuf/src \
-	-I lib/protobuf/third_party/abseil-cpp
+	-I lib/protobuf/third_party/abseil-cpp \
+	-flto
 
 CXXFLAGS=-std=gnu++17 $(CFLAGS)
 LDFLAGS=-Wl,--copy-dt-needed-entries
@@ -126,8 +127,8 @@ $(BUILD_DIR)/libchrome.a: $(CHROME_OBJ)
 	@ echo "[AR]\t$@"
 	@ $(AR) -rc $@ $^
 
-ota-tool: $(ALL_OBJ) $(BUILD_DIR)/third_party.a $(BUILD_DIR)/libprotobuf.a
-	$(CXX) -w -s -static -o $@ $(ALL_OBJ) -L$(BUILD_DIR) -llzma -l:libprotobuf.a -l:third_party.a -levent -l:libchrome.a
+ota-tool: $(ALL_OBJ) $(BUILD_DIR)/third_party.a $(BUILD_DIR)/libprotobuf.a $(BUILD_DIR)/libchrome.a
+	$(CXX) -flto -w -s -static -o $@ $(ALL_OBJ) -L$(BUILD_DIR) -llzma -l:libprotobuf.a -l:third_party.a -levent -l:libchrome.a
 
 # Need to replace the LOG statement with a single ; so that a statement
 # still exists. This is because some LOG calls are in an if/else block
