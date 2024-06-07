@@ -14,14 +14,14 @@ void init_payload(payload *update, FILE *f) {
 
   update->data_offset = sizeof(payload_header) + update->header.manifest_size + update->header.signature_len;
 
-  char *raw_manifest = read(f, update->header.manifest_size);
+  char *raw_manifest = read_alloc(f, update->header.manifest_size);
   
   update->manifest.ParseFromArray(raw_manifest, update->header.manifest_size);
 
   free(raw_manifest);
 }
 
-char* read(FILE *f, int size) {
+char* read_alloc(FILE *f, int size) {
   if (size == 0) {
     return (char*)0;
   }
@@ -32,14 +32,13 @@ char* read(FILE *f, int size) {
   return (char*)data;
 }
 
-void write_out(FILE *out,
+void write_out(int out,
     const chromeos_update_engine::InstallOperation *op,
     char* data
   ) {
   int data_offset = 0;
   PB_LOOP(op, dst_extent, Extent)
-    fseek(out, b2o(dst_extent.start_block()), SEEK_SET);
-    fwrite(&(data[data_offset]), b2o(dst_extent.num_blocks()), 1, out);
+    pwrite(out, &(data[data_offset]), b2o(dst_extent.num_blocks()), b2o(dst_extent.start_block()));
     data_offset += b2o(dst_extent.num_blocks());
   }
 }
@@ -53,7 +52,7 @@ char* output_buffer(const chromeos_update_engine::InstallOperation *op, unsigned
   return (char*)malloc(*size);
 }
 
-char* get_src(FILE *in, unsigned int *size,
+char* get_src(int in, unsigned int *size,
   const chromeos_update_engine::InstallOperation *op) {
   *size = 0;
   PB_LOOP(op, src_extent, Extent)
@@ -68,8 +67,7 @@ char* get_src(FILE *in, unsigned int *size,
   int offset = 0;
 
   PB_LOOP(op, src_extent, Extent)
-    fseek(in, b2o(src_extent.start_block()), SEEK_SET);
-    fread(&(src[offset]), b2o(src_extent.num_blocks()), 1, in);
+    pread(in, &(src[offset]), b2o(src_extent.num_blocks()), b2o(src_extent.start_block()));
     offset += b2o(src_extent.num_blocks());
   }
 

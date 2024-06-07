@@ -31,16 +31,16 @@ typedef struct {
 
 void init_payload(payload *update, FILE *f);
 
-void write_out(FILE *out,
+void write_out(int out,
     const chromeos_update_engine::InstallOperation *op,
     char* data
   );
 
 char* output_buffer(const chromeos_update_engine::InstallOperation *op, unsigned int *size);
 
-char* get_src(FILE *in, unsigned int *size,
+char* get_src(int in, unsigned int *size,
   const chromeos_update_engine::InstallOperation *op);
  
-char* read(FILE *f, int size);
+char* read_alloc(FILE *f, int size);
 
 #endif /* ifndef _H_PAYLOAD */

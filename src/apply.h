@@ -23,9 +23,11 @@ int Bzip2Decompress(void *data, size_t data_size, void *output, uint32_t output_
 void apply_partition(
     payload *update,
     const chromeos_update_engine::PartitionUpdate *p,
+    int start_at,
+    int end_at,
     FILE *data_file,
-    FILE *in_file,
-    FILE *out_file
+    int in_file,
+    int out_file
   );
 
 

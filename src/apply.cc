@@ -138,12 +138,14 @@ void sha256_bytes(char *data, unsigned int data_size, BYTE *hash) {
 void apply_partition(
     payload *update,
     const chromeos_update_engine::PartitionUpdate *p,
+    int start_at,
+    int end_at,
     FILE *data_file,
-    FILE *in_file,
-    FILE *out_file
+    int in_file,
+    int out_file
   ) {
-  for (int i = 0; i < p->operations_size(); i++) {
-    chromeos_update_engine::InstallOperation op = p->operations(i);
+  while (start_at < end_at) {
+    chromeos_update_engine::InstallOperation op = p->operations(start_at++);
 
     fseek(data_file, update->data_offset + op.data_offset(), SEEK_SET);
 
@@ -151,7 +153,7 @@ void apply_partition(
     unsigned int output_size, src_size;
     char *output;
     char *src = get_src(in_file, &src_size, &op);
-    char *data = read(data_file, op.data_length());
+    char *data = read_alloc(data_file, op.data_length());
     uint64_t mem_limit = 1410065407;
     size_t next = 0;
     size_t out = 0;

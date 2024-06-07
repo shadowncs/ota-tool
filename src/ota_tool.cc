@@ -1,10 +1,13 @@
 #include "ota_tool.h"
 #include "apply.h"
 #include <argp.h>
+#include <fcntl.h>
 
 
 const char *argp_program_version = "ota-tool 2.0-dev";
 const char *argp_program_bug_address = "<emily@redcoat.dev>";
+
+payload update;
 
 INIT_FUNC(usage) {
   std::cout << "Usage: ota-tool [subcommand] [flags]\n";
@@ -20,7 +23,6 @@ INIT_FUNC(list) {
 
   FILE *f = fopen(argv[2], "rb");
 
-  payload update;
   init_payload(&update, f);
 
   for (int j = 0; j < update.manifest.partitions_size(); j++) {
@@ -36,6 +38,7 @@ static struct argp_option options[] = {
   {"output",   'o', "DIR", 0, "Directory to place updated images into"},
   {"input",    'i', "DIR", 0, "Directory where existing images are"},
   {"partitions", 'p', "", 0, "List of partitions to extract"},
+  {"threads",   'c', "4", 0, "Number of threads to spawn"},
   { 0 }
 };
 
@@ -45,6 +48,7 @@ struct arguments
   char *input;
   char *partitions;
   char *update_file;
+  int threads;
 };
 
 static error_t
@@ -63,6 +67,9 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
     case 'p':
       arguments->partitions = arg;
+      break;
+    case 'c':
+      arguments->threads = atoi(arg);
       break;
 
     case ARGP_KEY_ARG:
@@ -94,15 +101,25 @@ static struct argp argp = {
   "Applies the upload to existing partition images"
 };
 
-FILE* open_img_file(char* dir, const char* file, char* mode) {
+int open_img_file(char* dir, const char* file, int flags) {
   char path[PATH_MAX];
   strcpy(path, dir);
   strcat(path, "/");
   strcat(path, file);
   strcat(path, ".img");
 
-  return fopen(path, mode);
+  return open(path, flags, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
 }
+
+typedef struct {
+  int part_number;
+  int in;
+  int out;
+} task;
+
+task *jobs;
+int total_operations = 0;
+int job_count = 0;
 
 void launch_apply(
   payload *update,
@@ -110,45 +127,81 @@ void launch_apply(
   char *partition
   ) {
 
-  FILE *f = fopen(args->update_file, "rb");
-
   for (int j = 0; j < update->manifest.partitions_size(); j++) {
-    const char *partition_name = update->manifest.partitions(j).partition_name().data();
+    chromeos_update_engine::PartitionUpdate part = update->manifest.partitions(j);
+    const char *partition_name = part.partition_name().data();
 
     if (partition == NULL || strcmp(partition_name, partition) == 0) {
-      std::cout << partition_name << std::endl;
 
-      FILE *in = open_img_file(args->input, partition_name, "rb");
-      if (in == NULL) {
+      int in = open_img_file(args->input, partition_name, O_RDONLY);
+      if (in < 0) {
+        continue;
+      }
+      int out = open_img_file(args->output, partition_name, O_WRONLY | O_CREAT | O_TRUNC);
+      if (out < 0) {
         continue;
       }
 
-      FILE *out = open_img_file(args->output, partition_name, "wcb");
+      std::cout << partition_name << std::endl;
 
-      apply_partition(update, &update->manifest.partitions(j), f, in, out);
-
-      fclose(out);
-      fclose(in);
+      jobs[job_count].part_number = j;
+      jobs[job_count].in = in;
+      jobs[job_count++].out = out;
+      total_operations += part.operations_size();
 
       if (partition != NULL) {
-        goto end;
+        return;
       }
     }
   }
+}
 
-end:
+#define malloc_t(type, count) (type*)malloc(sizeof(type) * count)
+
+typedef struct {
+  int start;
+  int end;
+  task* job;
+  struct arguments *args;
+} thread_job;
+
+void* run_apply(void *a) {
+  thread_job *t_job = (thread_job*)a;
+
+  FILE *f = fopen(t_job->args->update_file, "rb");
+
+  while (t_job->job != NULL) {
+    apply_partition(
+        &update,
+        &update.manifest.partitions(t_job->job->part_number),
+        t_job->start,
+        t_job->end,
+        f,
+        t_job->job->in,
+        t_job->job->out
+    );
+
+    t_job++;
+  }
+
   fclose(f);
+
+  // The calling function immediately forgets about the memory it has
+  // allocated to us, so it's the thread's responsibility to clean it up
+  // properly.
+  free(a);
+  return NULL;
 }
 
 INIT_FUNC(apply) {
-  struct arguments arguments = { NULL, NULL, NULL, NULL };
+  struct arguments arguments = { NULL, NULL, NULL, NULL, 4 };
 
   argp_parse (&argp, argc - 1, &(argv[1]), 0, 0, &arguments);
 
   FILE *f = fopen(arguments.update_file, "rb");
-  payload update;
   init_payload(&update, f);
-  fclose(f);
+
+  jobs = malloc_t(task, update.manifest.partitions_size());
 
   if (arguments.partitions == NULL) {
     launch_apply(&update, &arguments, NULL);
@@ -158,6 +211,56 @@ INIT_FUNC(apply) {
       launch_apply(&update, &arguments, partition);
       partition = strtok(NULL, ",");
     } while(partition != NULL);
+  }
+
+  int ops_per_thread = total_operations / arguments.threads + 1;
+  int ops_needed = ops_per_thread;
+  int used = 0;
+  int job = 0;
+  int thread_job_i = 0;
+  int cur_thread = 0;
+  pthread_t *tid = malloc_t(pthread_t, arguments.threads);
+  thread_job *t = malloc_t(thread_job, job_count + 1);
+
+  while (job != job_count) {
+    t[thread_job_i].job = &jobs[job];
+    t[thread_job_i].start = used;
+    t[thread_job_i].args = &arguments;
+
+    int ops_in_part = update.manifest.partitions(jobs[job].part_number).operations_size();
+    int ops_left = ops_in_part - used;
+    if (ops_left <= ops_needed) {
+      t[thread_job_i].end = ops_in_part - 1;
+      job++;
+      used = 0;
+      ops_needed -= ops_left;
+    } else {
+      used += ops_needed;
+      t[thread_job_i].end = used;
+      ops_needed = 0;
+    }
+
+    thread_job_i++;
+
+    // If the thread is full, or we've run out of jobs to assign, we can
+    // start it and start assigning to the next one.
+    if (ops_needed == 0 || job == job_count) {
+      t[thread_job_i].job = NULL;
+      pthread_create(&tid[cur_thread++], NULL, run_apply, t);
+      t = malloc_t(thread_job, job_count + 1);
+      thread_job_i = 0;
+      ops_needed = ops_per_thread;
+    }
+  }
+
+  while (--cur_thread >= 0) {
+    void *ret;
+    pthread_join(tid[cur_thread], &ret);
+  }
+
+  for (job = 0; job < job_count; job++) {
+    close(jobs[job].in);
+    close(jobs[job].out);
   }
 
   return 0;
