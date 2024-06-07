@@ -4,6 +4,7 @@
 #include <argp.h>
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <sys/sysinfo.h>
 
 
 const char *argp_program_version = "ota-tool 2.0-dev";
@@ -191,7 +192,7 @@ void* run_apply(void *a) {
 }
 
 INIT_FUNC(apply) {
-  struct arguments arguments = { NULL, NULL, NULL, NULL, 4 };
+  struct arguments arguments = { NULL, NULL, NULL, NULL, get_nprocs_conf() };
 
   argp_parse (&argp, argc - 1, &(argv[1]), 0, 0, &arguments);
 
