@@ -83,9 +83,12 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
 
     case ARGP_KEY_END:
-      if (state->arg_num < 1)
-        /* Not enough arguments. */
-        argp_usage (state);
+      if (!arguments->update_file)
+        argp_usage(state);
+      if (!arguments->input)
+        argp_usage(state);
+      if (!arguments->output)
+        argp_usage(state);
       break;
 
     default:
