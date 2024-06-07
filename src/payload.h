@@ -29,7 +29,24 @@ typedef struct {
   chromeos_update_engine::DeltaArchiveManifest manifest;
 } payload;
 
+#define ZIP_MAGIC 0x04034b50
+
+typedef struct __attribute__((__packed__)) {
+  uint32_t magic;
+  uint16_t version;
+  uint16_t bit;
+  uint16_t compression;
+  uint16_t mod_time;
+  uint16_t mod_date;
+  uint32_t crc32;
+  uint32_t compressed_size;
+  uint32_t uncompressed_size;
+  uint16_t filename_length;
+  uint16_t extra_field_length;
+} zip_header;
+
 void init_payload(payload *update, FILE *f);
+void init_payload_from_zip(payload *update, FILE *f);
 
 void write_out(int out,
     const chromeos_update_engine::InstallOperation *op,

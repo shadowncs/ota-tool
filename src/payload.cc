@@ -1,6 +1,33 @@
 #include "payload.h"
 #include "util.h"
 
+void init_payload_from_zip(payload *update, FILE *f) {
+  zip_header header;
+
+  while (fread(&header, sizeof(zip_header), 1, f)) {
+    if (header.magic != ZIP_MAGIC) {
+      std::cerr << "Not a valid zip archive" << std::endl;
+      exit(1);
+    }
+
+    char filename[NAME_MAX];
+    fread(filename, header.filename_length, 1, f);
+
+    if (strncmp("payload.bin", filename, header.filename_length) != 0) {
+      fseek(f, header.extra_field_length + header.compressed_size, SEEK_CUR);
+    } else {
+      fseek(f, header.extra_field_length, SEEK_CUR);
+      long offset = ftell(f);
+      init_payload(update, f);
+      update->data_offset += offset;
+      return;
+    }
+  }
+
+  std::cerr << "Could not find payload.bin in the zip archive" << std::endl;
+  exit(1);
+}
+
 void init_payload(payload *update, FILE *f) {
   fread(&(update->header), sizeof(payload_header), 1, f);
 

@@ -196,7 +196,13 @@ INIT_FUNC(apply) {
   argp_parse (&argp, argc - 1, &(argv[1]), 0, 0, &arguments);
 
   FILE *f = fopen(arguments.update_file, "rb");
-  init_payload(&update, f);
+
+  int len = strlen(arguments.update_file);
+  if(len > 3 && !strcmp(arguments.update_file + len - 4, ".zip")) {
+    init_payload_from_zip(&update, f);
+  } else {
+    init_payload(&update, f);
+  }
 
   struct stat sb;
   if (stat(arguments.output, &sb)) {
