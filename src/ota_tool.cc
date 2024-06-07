@@ -156,7 +156,7 @@ void launch_apply(
   }
 }
 
-#define malloc_t(type, count) (type*)malloc(sizeof(type) * count)
+#define malloc_t(type, count) (type*)malloc(sizeof(type) * (count))
 
 typedef struct {
   int start;
