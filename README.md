@@ -2,13 +2,10 @@
 
 A tool for extracting or patching images from Android OTA payloads.
 
-This project is a fork of [payload-dumper-go](https://github.com/ssut/payload-dumper-go).
+This project was a originally a fork of [payload-dumper-go](https://github.com/ssut/payload-dumper-go) -
+it has now been reimplemented in C(++).
 
 ## Features
-
-![screenshot](https://i.imgur.com/IJtwoWU.png)
-
-See how fast payload-dumper-go is: https://imgur.com/a/X6HKJT4. (MacBook Pro 16-inch 2019 i9-9750H, 16G)
 
 - Incredibly fast decompression. All decompression progresses are executed in parallel.
 - Payload checksum verification.
@@ -87,7 +84,6 @@ go build .
 ### Build Toolchain
 
 - protoc
-- golang
 - make
 - cmake
 - gcc (or another C compiler)
