@@ -1,4 +1,5 @@
 #include "payload.h"
+#include "util.h"
 
 void init_payload(payload *update, FILE *f) {
   fread(&(update->header), sizeof(payload_header), 1, f);
@@ -19,17 +20,6 @@ void init_payload(payload *update, FILE *f) {
   update->manifest.ParseFromArray(raw_manifest, update->header.manifest_size);
 
   free(raw_manifest);
-}
-
-char* read_alloc(FILE *f, int size) {
-  if (size == 0) {
-    return (char*)0;
-  }
-
-  void* data = malloc(size);
-  fread(data, size, 1, f);
-
-  return (char*)data;
 }
 
 void write_out(int out,

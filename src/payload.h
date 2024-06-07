@@ -41,6 +41,4 @@ char* output_buffer(const chromeos_update_engine::InstallOperation *op, unsigned
 char* get_src(int in, unsigned int *size,
   const chromeos_update_engine::InstallOperation *op);
  
-char* read_alloc(FILE *f, int size);
-
 #endif /* ifndef _H_PAYLOAD */

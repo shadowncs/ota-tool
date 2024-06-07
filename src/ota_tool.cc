@@ -1,5 +1,6 @@
 #include "ota_tool.h"
 #include "apply.h"
+#include "util.h"
 #include <argp.h>
 #include <fcntl.h>
 
@@ -101,16 +102,6 @@ static struct argp argp = {
   "Applies the upload to existing partition images"
 };
 
-int open_img_file(char* dir, const char* file, int flags) {
-  char path[PATH_MAX];
-  strcpy(path, dir);
-  strcat(path, "/");
-  strcat(path, file);
-  strcat(path, ".img");
-
-  return open(path, flags, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
-}
-
 typedef struct {
   int part_number;
   int in;
@@ -155,8 +146,6 @@ void launch_apply(
     }
   }
 }
-
-#define malloc_t(type, count) (type*)malloc(sizeof(type) * (count))
 
 typedef struct {
   int start;

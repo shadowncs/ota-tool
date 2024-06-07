@@ -1,5 +1,6 @@
 #include "apply.h"
 #include "payload.h"
+#include "util.h"
 #include "algos.h"
 #include <bzlib.h>
 #include <bsdiff/bspatch.h>
