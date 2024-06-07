@@ -9,10 +9,7 @@
 #include <cstring>
 #include <utility>
 #include <lzma.h>
-
-extern "C" {
-#include "sha256.h"
-}
+#include <openssl/sha.h>
 
 class PuffinDataStream : public puffin::StreamInterface {
  public:
@@ -128,11 +125,11 @@ int64_t ExecuteSourceZucchiniOperation(void *data, size_t data_size,
 	return zucchini::ApplyBuffer(old_image, *patch_reader, new_image);
 }
 
-void sha256_bytes(char *data, unsigned int data_size, BYTE *hash) {
+void sha256_bytes(char *data, unsigned int data_size, unsigned char *hash) {
   SHA256_CTX ctx;
-  sha256_init(&ctx);
-  sha256_update(&ctx, (const BYTE*)data, data_size);
-  sha256_final(&ctx, hash);
+  SHA256_Init(&ctx);
+  SHA256_Update(&ctx, (const void*)data, data_size);
+  SHA256_Final(hash, &ctx);
 }
 
 void apply_partition(
@@ -149,7 +146,7 @@ void apply_partition(
 
     fseek(data_file, update->data_offset + op.data_offset(), SEEK_SET);
 
-    BYTE hash[32] = {0};
+    unsigned char hash[32] = {0};
     unsigned int output_size, src_size;
     char *output;
     char *src = get_src(in_file, &src_size, &op);

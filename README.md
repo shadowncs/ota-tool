@@ -82,6 +82,7 @@ go build .
 - glib-devel
 - libevent-devel
 - liblzma-devel
+- libopenssl-devel
 
 ### Build Toolchain
 

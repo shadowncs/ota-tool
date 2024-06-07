@@ -1,7 +1,6 @@
 CFLAGS=\
 	-I lib \
 	-I src \
-	-I lib/SHA-256 \
 	-I $(BUILD_DIR)/src \
 	-I $(BUILD_DIR)/lib \
 	-I $(BUILD_DIR) \
@@ -113,7 +112,6 @@ CHROME_SRC=$(wildcard \
 
 ALL_SRC=\
 	$(SRC) \
-	lib/SHA-256/sha256.c \
 	$(BSPATCH_SRC) \
 	$(BZ2_SRC) \
 	$(PUFFPATCH_SRC) \
@@ -129,7 +127,7 @@ $(BUILD_DIR)/libchrome.a: $(CHROME_OBJ)
 
 ota-tool: $(ALL_OBJ) $(BUILD_DIR)/third_party.a $(BUILD_DIR)/libprotobuf.a $(BUILD_DIR)/libchrome.a
 	@ echo "[LD]\t$@"
-	@ $(CXX) -flto -w -s -static -o $@ $(ALL_OBJ) -L$(BUILD_DIR) -llzma -l:libprotobuf.a -l:third_party.a -levent -l:libchrome.a
+	@ $(CXX) -flto -w -s -static -o $@ $(ALL_OBJ) -L$(BUILD_DIR) -llzma -l:libprotobuf.a -l:third_party.a -levent -l:libchrome.a -lcrypto
 
 # Need to replace the LOG statement with a single ; so that a statement
 # still exists. This is because some LOG calls are in an if/else block

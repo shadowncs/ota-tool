@@ -19,6 +19,3 @@
 [submodule "chromeos_update_engine/protobuf"]
 	path = lib/protobuf
 	url = https://github.com/protocolbuffers/protobuf
-[submodule "lib/SHA-256"]
-	path = lib/SHA-256
-	url = https://github.com/B-Con/crypto-algorithms.git
