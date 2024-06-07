@@ -130,10 +130,14 @@ void launch_apply(
 
       int in = open_img_file(args->input, partition_name, O_RDONLY);
       if (in < 0) {
+        if (partition != NULL) {
+          std::cerr << "Could not open the source image for reading: " << partition << std::endl;
+        }
         continue;
       }
       int out = open_img_file(args->output, partition_name, O_WRONLY | O_CREAT | O_TRUNC);
       if (out < 0) {
+        std::cerr << "Could not open image for writing: " << partition_name << ". Skipping" << std::endl;
         continue;
       }
 
