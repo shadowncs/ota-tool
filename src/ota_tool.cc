@@ -201,6 +201,10 @@ INIT_FUNC(apply) {
   argp_parse (&argp, argc - 1, &(argv[1]), 0, 0, &arguments);
 
   FILE *f = fopen(arguments.update_file, "rb");
+  if (!f) {
+    std::cerr << "Could not open update file for reading: " << arguments.update_file << std::endl;
+    return 1;
+  }
 
   int len = strlen(arguments.update_file);
   if(len > 3 && !strcmp(arguments.update_file + len - 4, ".zip")) {
