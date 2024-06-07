@@ -3,6 +3,7 @@
 #include "util.h"
 #include <argp.h>
 #include <fcntl.h>
+#include <sys/stat.h>
 
 
 const char *argp_program_version = "ota-tool 2.0-dev";
@@ -192,6 +193,19 @@ INIT_FUNC(apply) {
 
   FILE *f = fopen(arguments.update_file, "rb");
   init_payload(&update, f);
+
+  struct stat sb;
+  if (stat(arguments.output, &sb)) {
+    // We couldn't stat it - either because it doesn't exist or because
+    // of access permissions. Naively try to create it last minute.
+    if (mkdir(arguments.output, S_IRWXU | S_IRWXG)) {
+      std::cerr << "Could not ensure output directory exists: " << arguments.output << std::endl;
+      return 1;
+    }
+  } else if ((sb.st_mode & S_IFMT) != S_IFDIR) {
+    std::cerr << "Output is not a directory: " << arguments.output << std::endl;
+    return 1;
+  }
 
   jobs = malloc_t(task, update.manifest.partitions_size());
 
