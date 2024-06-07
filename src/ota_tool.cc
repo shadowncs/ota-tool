@@ -236,9 +236,14 @@ INIT_FUNC(apply) {
     if (ops_needed == 0 || job == job_count) {
       t[thread_job_i].job = NULL;
       pthread_create(&tid[cur_thread++], NULL, run_apply, t);
-      t = malloc_t(thread_job, job_count + 1);
       thread_job_i = 0;
       ops_needed = ops_per_thread;
+
+      // Get the next thread job list ready if we still have things to
+      // process
+      if (job != job_count) {
+        t = malloc_t(thread_job, job_count + 1);
+      }
     }
   }
 
