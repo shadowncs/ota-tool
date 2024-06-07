@@ -73,6 +73,10 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
     case 'c':
       arguments->threads = atoi(arg);
+      if (arguments->threads <= 0) {
+        std::cerr << "Invalid Number of Threads: " << arg << std::endl;
+        argp_usage(state);
+      }
       break;
 
     case ARGP_KEY_ARG:
