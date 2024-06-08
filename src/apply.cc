@@ -35,8 +35,7 @@ void apply_partition(
     if (op.has_src_sha256_hash()) {
       sha256_bytes(src, src_size, hash);
       if (memcmp(hash, op.src_sha256_hash().data(), 32) != 0) {
-        std::cerr << "ERROR: When patching " << p->partition_name() << std::endl;
-        std::cerr << "Source Hash Mismatch. This normally means either the source image is corrupted or you are running the wrong patch version against it" << std::endl;
+        log_err(p->partition_name().data(), "Source Hash Mismatch. The source image is corrupted or you are running the wrong patch version against it");
         end_at = 0;
         goto end;
       }
@@ -44,8 +43,7 @@ void apply_partition(
     if (op.has_data_sha256_hash()) {
       sha256_bytes(data, op.data_length(), hash);
       if (memcmp(hash, op.data_sha256_hash().data(), 32) != 0) {
-        std::cerr << "ERROR: When patching " << p->partition_name() << std::endl;
-        std::cerr << "Data Hash Mismatch. This normally means the update file/zip is corrupted" << std::endl;
+        log_err(p->partition_name().data(), "Data Hash Mismatch. The update file is corrupted");
         end_at = 0;
         goto end;
       }
@@ -82,7 +80,7 @@ void apply_partition(
         output = src;
         break;
       default:
-        std::cout << "UNKNOWN\n";
+        log_err(p->partition_name().data(), "Unknown Operation Type");
         return;
     }
 

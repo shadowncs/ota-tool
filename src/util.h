@@ -9,4 +9,6 @@ int open_img_file(char* dir, const char* file, int flags);
 
 char* read_alloc(FILE *f, int size);
 
+void log_err(const char *section, const char *msg);
+
 #endif /* ifndef _H_UTIL */

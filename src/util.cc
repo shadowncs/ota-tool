@@ -3,6 +3,8 @@
 #include <cstdlib>
 #include <cstring>
 #include <linux/limits.h>
+#include <ostream>
+#include <iostream>
 
 int open_img_file(char* dir, const char* file, int flags) {
   char path[PATH_MAX];
@@ -25,4 +27,6 @@ char* read_alloc(FILE *f, int size) {
   return (char*)data;
 }
 
-
+void log_err(const char *section, const char *msg) {
+  std::cerr << "ERROR: " << section << ": " << msg << std::endl;
+}
