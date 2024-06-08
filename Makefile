@@ -164,3 +164,4 @@ $(BUILD_DIR)/lib/protobuf/Makefile:
 
 clean:
 	rm -rf $(BUILD_DIR)
+	rm ota-tool
