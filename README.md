@@ -70,8 +70,7 @@ https://android.googlesource.com/platform/system/update_engine/+/master/update_m
 
 ```
 git submodule update --init --recursive
-go generate chromeos_update_engine/update_engine.go 
-go build .
+make
 ```
 
 ### Build Deps
