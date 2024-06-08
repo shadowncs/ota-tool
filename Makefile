@@ -145,7 +145,7 @@ $(BUILD_DIR)/%.o: %.c
 	@ mkdir -p $(dir $@)
 	@ $(CC) $(CFLAGS) -c -o $@ $< $(LDFLAGS)
 
-$(BUILD_DIR)/src/apply.cc: $(BUILD_DIR)/src/update_metadata.pb.cc
+$(addprefix $(BUILD_DIR)/, $(SRC)): $(BUILD_DIR)/src/update_metadata.pb.cc
 $(BUILD_DIR)/lib/puffin/src/puffpatch.cc: $(BUILD_DIR)/lib/puffin/src/puffin.pb.cc
 $(BUILD_DIR)/%.pb.cc: %.proto
 	@ echo "[PROTO]\t$^"
