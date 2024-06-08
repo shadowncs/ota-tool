@@ -10,6 +10,8 @@
 const char *argp_program_version = "ota-tool 2.0-dev";
 const char *argp_program_bug_address = "<emily@redcoat.dev>";
 
+struct arguments args = { NULL, NULL, NULL, NULL, get_nprocs_conf() };
+
 payload update;
 
 INIT_FUNC(usage) {
@@ -45,19 +47,9 @@ static struct argp_option options[] = {
   { 0 }
 };
 
-struct arguments
-{
-  char *output;
-  char *input;
-  char *partitions;
-  char *update_file;
-  int threads;
-};
-
 static error_t
 parse_opt (int key, char *arg, struct argp_state *state)
 {
-
   struct arguments *arguments = (struct arguments*)state->input;
 
   switch (key)
@@ -121,26 +113,21 @@ task *jobs;
 int total_operations = 0;
 int job_count = 0;
 
-void launch_apply(
-  payload *update,
-  struct arguments *args,
-  char *partition
-  ) {
-
-  for (int j = 0; j < update->manifest.partitions_size(); j++) {
-    chromeos_update_engine::PartitionUpdate part = update->manifest.partitions(j);
+void launch_apply(char *partition) {
+  for (int j = 0; j < update.manifest.partitions_size(); j++) {
+    chromeos_update_engine::PartitionUpdate part = update.manifest.partitions(j);
     const char *partition_name = part.partition_name().data();
 
     if (partition == NULL || strcmp(partition_name, partition) == 0) {
 
-      int in = open_img_file(args->input, partition_name, O_RDONLY);
+      int in = open_img_file(args.input, partition_name, O_RDONLY);
       if (in < 0) {
         if (partition != NULL) {
           log_err(partition, "Could not open the source image for reading");
         }
         continue;
       }
-      int out = open_img_file(args->output, partition_name, O_WRONLY | O_CREAT | O_TRUNC);
+      int out = open_img_file(args.output, partition_name, O_WRONLY | O_CREAT | O_TRUNC);
       if (out < 0) {
         log_err(partition, "Could not open the destination image for writing");
         continue;
@@ -162,13 +149,12 @@ typedef struct {
   int start;
   int end;
   task* job;
-  struct arguments *args;
 } thread_job;
 
 void* run_apply(void *a) {
   thread_job *t_job = (thread_job*)a;
 
-  FILE *f = fopen(t_job->args->update_file, "rb");
+  FILE *f = fopen(args.update_file, "rb");
 
   while (t_job->job != NULL) {
     apply_partition(
@@ -194,61 +180,59 @@ void* run_apply(void *a) {
 }
 
 INIT_FUNC(apply) {
-  struct arguments arguments = { NULL, NULL, NULL, NULL, get_nprocs_conf() };
 
-  argp_parse (&argp, argc - 1, &(argv[1]), 0, 0, &arguments);
+  argp_parse (&argp, argc - 1, &(argv[1]), 0, 0, &args);
 
-  FILE *f = fopen(arguments.update_file, "rb");
+  FILE *f = fopen(args.update_file, "rb");
   if (!f) {
-    std::cerr << "Could not open update file for reading: " << arguments.update_file << std::endl;
+    std::cerr << "Could not open update file for reading: " << args.update_file << std::endl;
     return 1;
   }
 
-  int len = strlen(arguments.update_file);
-  if(len > 3 && !strcmp(arguments.update_file + len - 4, ".zip")) {
+  int len = strlen(args.update_file);
+  if(len > 3 && !strcmp(args.update_file + len - 4, ".zip")) {
     init_payload_from_zip(&update, f);
   } else {
     init_payload(&update, f);
   }
 
   struct stat sb;
-  if (stat(arguments.output, &sb)) {
+  if (stat(args.output, &sb)) {
     // We couldn't stat it - either because it doesn't exist or because
     // of access permissions. Naively try to create it last minute.
-    if (mkdir(arguments.output, S_IRWXU | S_IRWXG)) {
-      std::cerr << "Could not ensure output directory exists: " << arguments.output << std::endl;
+    if (mkdir(args.output, S_IRWXU | S_IRWXG)) {
+      std::cerr << "Could not ensure output directory exists: " << args.output << std::endl;
       return 1;
     }
   } else if ((sb.st_mode & S_IFMT) != S_IFDIR) {
-    std::cerr << "Output is not a directory: " << arguments.output << std::endl;
+    std::cerr << "Output is not a directory: " << args.output << std::endl;
     return 1;
   }
 
   jobs = malloc_t(task, update.manifest.partitions_size());
 
-  if (arguments.partitions == NULL) {
-    launch_apply(&update, &arguments, NULL);
+  if (args.partitions == NULL) {
+    launch_apply(NULL);
   } else {
-    char *partition = strtok(arguments.partitions, ",");
+    char *partition = strtok(args.partitions, ",");
     do {
-      launch_apply(&update, &arguments, partition);
+      launch_apply(partition);
       partition = strtok(NULL, ",");
     } while(partition != NULL);
   }
 
-  int ops_per_thread = total_operations / arguments.threads + 1;
+  int ops_per_thread = total_operations / args.threads + 1;
   int ops_needed = ops_per_thread;
   int used = 0;
   int job = 0;
   int thread_job_i = 0;
   int cur_thread = 0;
-  pthread_t *tid = malloc_t(pthread_t, arguments.threads);
+  pthread_t *tid = malloc_t(pthread_t, args.threads);
   thread_job *t = malloc_t(thread_job, job_count + 1);
 
   while (job != job_count) {
     t[thread_job_i].job = &jobs[job];
     t[thread_job_i].start = used;
-    t[thread_job_i].args = &arguments;
 
     int ops_in_part = update.manifest.partitions(jobs[job].part_number).operations_size();
     int ops_left = ops_in_part - used;
