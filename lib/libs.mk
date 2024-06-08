@@ -128,15 +128,10 @@ LIBS += libchrome.a
 
 CHROME_SRC = \
 	lib/libchrome/base/at_exit.cc \
-	lib/libchrome/base/base_paths.cc \
-	lib/libchrome/base/base_paths_posix.cc \
 	lib/libchrome/base/base_switches.cc \
 	lib/libchrome/base/callback_helpers.cc \
 	lib/libchrome/base/callback_internal.cc \
 	lib/libchrome/base/command_line.cc \
-	lib/libchrome/base/debug/alias.cc \
-	lib/libchrome/base/debug/task_annotator.cc \
-	lib/libchrome/base/environment.cc \
 	lib/libchrome/base/files/file.cc \
 	lib/libchrome/base/files/file_enumerator.cc \
 	lib/libchrome/base/files/file_enumerator_posix.cc \
@@ -147,22 +142,11 @@ CHROME_SRC = \
 	lib/libchrome/base/files/file_util.cc \
 	lib/libchrome/base/files/file_util_posix.cc \
 	lib/libchrome/base/files/scoped_file.cc \
-	lib/libchrome/base/hash.cc \
 	lib/libchrome/base/lazy_instance_helpers.cc \
 	lib/libchrome/base/location.cc \
-	lib/libchrome/base/memory/page_size_posix.cc \
 	lib/libchrome/base/memory/ref_counted.cc \
 	lib/libchrome/base/memory/weak_ptr.cc \
-	lib/libchrome/base/message_loop/incoming_task_queue.cc \
-	lib/libchrome/base/message_loop/message_loop.cc \
-	lib/libchrome/base/message_loop/message_loop_current.cc \
-	lib/libchrome/base/message_loop/message_loop_task_runner.cc \
-	lib/libchrome/base/message_loop/message_pump.cc \
-	lib/libchrome/base/message_loop/watchable_io_message_pump_posix.cc \
-	lib/libchrome/base/path_service.cc \
-	lib/libchrome/base/pending_task.cc \
 	lib/libchrome/base/pickle.cc \
-	lib/libchrome/base/process/process_metrics_linux.cc \
 	lib/libchrome/base/run_loop.cc \
 	lib/libchrome/base/sequence_checker_impl.cc \
 	lib/libchrome/base/sequenced_task_runner.cc \
@@ -195,7 +179,6 @@ CHROME_SRC = \
 	lib/libchrome/base/threading/thread_local_storage_posix.cc \
 	lib/libchrome/base/threading/thread_restrictions.cc \
 	lib/libchrome/base/threading/thread_task_runner_handle.cc \
-	lib/libchrome/base/timer/elapsed_timer.cc \
 	lib/libchrome/base/time/time.cc \
 	lib/libchrome/base/time/time_conversion_posix.cc \
 	lib/libchrome/base/time/time_exploded_posix.cc \
