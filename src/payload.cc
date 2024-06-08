@@ -8,6 +8,23 @@
 #include <lzma.h>
 #include <openssl/sha.h>
 
+FILE* open_from_filename(const char *name, payload *update) {
+  FILE *f = fopen(name, "rb");
+  if (!f) {
+    std::cerr << "Could not open update file for reading: " << name << std::endl;
+    exit(1);
+  }
+
+  int len = strlen(name);
+  if(len > 3 && !strcmp(name + len - 4, ".zip")) {
+    init_payload_from_zip(update, f);
+  } else {
+    init_payload(update, f);
+  }
+
+  return f;
+}
+
 void init_payload_from_zip(payload *update, FILE *f) {
   zip_header header;
 

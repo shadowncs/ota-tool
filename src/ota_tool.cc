@@ -26,9 +26,7 @@ INIT_FUNC(list) {
     return 1;
   }
 
-  FILE *f = fopen(argv[2], "rb");
-
-  init_payload(&update, f);
+  FILE *f = open_from_filename(argv[2], &update);
 
   for (int j = 0; j < update.manifest.partitions_size(); j++) {
     std::cout << update.manifest.partitions(j).partition_name() << std::endl;
@@ -162,18 +160,7 @@ INIT_FUNC(apply) {
 
   argp_parse (&argp, argc - 1, &(argv[1]), 0, 0, &args);
 
-  FILE *f = fopen(args.update_file, "rb");
-  if (!f) {
-    std::cerr << "Could not open update file for reading: " << args.update_file << std::endl;
-    return 1;
-  }
-
-  int len = strlen(args.update_file);
-  if(len > 3 && !strcmp(args.update_file + len - 4, ".zip")) {
-    init_payload_from_zip(&update, f);
-  } else {
-    init_payload(&update, f);
-  }
+  FILE *f = open_from_filename(args.update_file, &update);
 
   struct stat sb;
   if (stat(args.output, &sb)) {

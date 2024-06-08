@@ -57,6 +57,7 @@ typedef struct __attribute__((__packed__)) {
   uint16_t extra_field_length;
 } zip_header;
 
+FILE* open_from_filename(const char *name, payload *update);
 void init_payload(payload *update, FILE *f);
 void init_payload_from_zip(payload *update, FILE *f);
 
