@@ -20,9 +20,7 @@ BUILD_DIR ?= .build
 
 libs: $(BUILD_DIR)/libprotobuf.a $(BUILD_DIR)/third_party.a
 
-SRC=\
-		$(wildcard src/*.cc) \
-		src/update_metadata.pb.cc
+SRC=$(wildcard src/*.cc)
 
 BSPATCH_SRC=\
 	lib/bsdiff/brotli_decompressor.cc \
