@@ -220,6 +220,8 @@ LIBS += libprotobuf.a third_party.a
 PB_BUILD_DIR  = $(BUILD_DIR)/lib/protobuf
 PB_MAKEFILE   = $(PB_BUILD_DIR)/Makefile
 PB_LIB_OUT    = $(PB_BUILD_DIR)/libprotobuf.a
+PB_PROTOC_OUT = $(PB_BUILD_DIR)/protoc
+PROTOC       ?= $(PB_PROTOC_OUT)
 PB_MAKE       = $(MAKE) -C $(PB_BUILD_DIR)
 
 $(BUILD_DIR)/third_party.a: $(PB_LIB_OUT)
@@ -235,3 +237,5 @@ $(PB_LIB_OUT): $(PB_MAKEFILE)
 $(PB_MAKEFILE):
 	cmake -S lib/protobuf -B $(PB_BUILD_DIR)
 
+$(PB_PROTOC_OUT): $(PB_MAKEFILE)
+	$(PB_MAKE) protoc

@@ -80,11 +80,21 @@ make
 
 ### Build Toolchain
 
-- protoc
 - make
 - cmake
 - gcc (or another C compiler)
 - g++ (or another C++ compiler)
+
+`protoc` is not required on the host machine as it will be built as part
+of this project. If you want, you can force it to use a host protoc by
+specifying PROTOC=protoc or PROTOC=/path/to/protoc when calling make.
+
+```
+make PROTOC=protoc
+```
+
+NB: This can speed up compilation slightly, however it is not
+recommended as protobuf is _very picky_ about protoc versions.
 
 ## License
 

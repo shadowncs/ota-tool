@@ -1,7 +1,7 @@
 
 BUILD_DIR ?= .build
 PROG      ?= ota-tool
-PROTOC    ?= $(shell which protoc)
+#PROTOC    ?= $(shell which protoc)
 
 .DEFAULT_GOAL := $(PROG)
 
@@ -30,11 +30,15 @@ clean:
 #
 
 $(addprefix $(BUILD_DIR)/, $(wildcard src/*.cc)): $(BUILD_DIR)/src/update_metadata.pb.cc
-$(BUILD_DIR)/%.pb.cc: %.proto
+$(BUILD_DIR)/%.pb.cc: %.proto $(PROTOC)
 	@ echo "[PROTO]\t$<"
 	@ mkdir -p $(dir $@)
 	@ $(PROTOC) --cpp_out=$(BUILD_DIR) $<
 
+# We add a phony target for protoc so that if you set PROTOC=protoc (ie
+# using the host protoc in path), make doesn't try to build it as a file
+# in this directory.
+.PHONY: protoc
 
 ###
 # General C(++)
