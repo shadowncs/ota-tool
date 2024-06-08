@@ -3,7 +3,6 @@ BUILD_DIR ?= .build
 PROG      ?= ota-tool
 #PROTOC    ?= $(shell which protoc)
 
-.DEFAULT_GOAL := $(PROG)
 
 include lib/libs.mk
 
@@ -14,12 +13,19 @@ include lib/libs.mk
 
 INCLUDE += src $(BUILD_DIR)/src
 
-SRC += $(wildcard src/*.cc) src/update_metadata.pb.cc
-OBJ = $(addprefix $(BUILD_DIR)/,$(SRC:=.o))
+SRC          += $(wildcard src/*.cc) src/update_metadata.pb.cc
+OBJ           = $(addprefix $(BUILD_DIR)/,$(SRC:=.o))
+PROG_DEPS     = $(OBJ) $(addprefix $(BUILD_DIR)/, $(LIBS))
+BUILD_CMD     = $(CXX) -flto -w -s $(OBJ) -L$(BUILD_DIR) -llzma -lcrypto $(addprefix -l:,$(LIBS))
+.DEFAULT_GOAL = $(PROG)
 
-$(PROG): $(OBJ) $(addprefix $(BUILD_DIR)/, $(LIBS))
+$(PROG): $(PROG_DEPS)
 	@ echo "[LD]\t$@"
-	@ $(CXX) -flto -w -s -static -o $@ $(OBJ) -L$(BUILD_DIR) -llzma -lcrypto $(addprefix -l:,$(LIBS))
+	@ $(BUILD_CMD) -o $@
+
+$(PROG)-static: $(PROG_DEPS)
+	@ echo "[LD]\t$@"
+	@ $(BUILD_CMD) -static -o $@
 
 clean:
 	rm -rf $(BUILD_DIR) $(PROG)
