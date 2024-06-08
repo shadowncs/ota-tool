@@ -76,8 +76,6 @@ go build .
 
 ### Build Deps
 
-- glib-devel
-- libevent-devel
 - liblzma-devel
 - libopenssl-devel
 

@@ -126,11 +126,81 @@ INCLUDE += lib/libchrome
 
 LIBS += libchrome.a
 
-CHROME_SRC=$(wildcard \
-	lib/libchrome/base/third_party/*/*.cc \
-	lib/libchrome/base/*/*.cc \
-	lib/libchrome/base/*.cc \
-)
+CHROME_SRC = \
+	lib/libchrome/base/at_exit.cc \
+	lib/libchrome/base/base_paths.cc \
+	lib/libchrome/base/base_paths_posix.cc \
+	lib/libchrome/base/base_switches.cc \
+	lib/libchrome/base/callback_helpers.cc \
+	lib/libchrome/base/callback_internal.cc \
+	lib/libchrome/base/command_line.cc \
+	lib/libchrome/base/debug/alias.cc \
+	lib/libchrome/base/debug/task_annotator.cc \
+	lib/libchrome/base/environment.cc \
+	lib/libchrome/base/files/file.cc \
+	lib/libchrome/base/files/file_enumerator.cc \
+	lib/libchrome/base/files/file_enumerator_posix.cc \
+	lib/libchrome/base/files/file_path.cc \
+	lib/libchrome/base/files/file_path_constants.cc \
+	lib/libchrome/base/files/file_posix.cc \
+	lib/libchrome/base/files/file_tracing.cc \
+	lib/libchrome/base/files/file_util.cc \
+	lib/libchrome/base/files/file_util_posix.cc \
+	lib/libchrome/base/files/scoped_file.cc \
+	lib/libchrome/base/hash.cc \
+	lib/libchrome/base/lazy_instance_helpers.cc \
+	lib/libchrome/base/location.cc \
+	lib/libchrome/base/memory/page_size_posix.cc \
+	lib/libchrome/base/memory/ref_counted.cc \
+	lib/libchrome/base/memory/weak_ptr.cc \
+	lib/libchrome/base/message_loop/incoming_task_queue.cc \
+	lib/libchrome/base/message_loop/message_loop.cc \
+	lib/libchrome/base/message_loop/message_loop_current.cc \
+	lib/libchrome/base/message_loop/message_loop_task_runner.cc \
+	lib/libchrome/base/message_loop/message_pump.cc \
+	lib/libchrome/base/message_loop/watchable_io_message_pump_posix.cc \
+	lib/libchrome/base/path_service.cc \
+	lib/libchrome/base/pending_task.cc \
+	lib/libchrome/base/pickle.cc \
+	lib/libchrome/base/process/process_metrics_linux.cc \
+	lib/libchrome/base/run_loop.cc \
+	lib/libchrome/base/sequence_checker_impl.cc \
+	lib/libchrome/base/sequenced_task_runner.cc \
+	lib/libchrome/base/sequence_token.cc \
+	lib/libchrome/base/strings/string16.cc \
+	lib/libchrome/base/strings/string_number_conversions.cc \
+	lib/libchrome/base/strings/string_piece.cc \
+	lib/libchrome/base/strings/stringprintf.cc \
+	lib/libchrome/base/strings/string_split.cc \
+	lib/libchrome/base/strings/string_util.cc \
+	lib/libchrome/base/strings/string_util_constants.cc \
+	lib/libchrome/base/strings/sys_string_conversions_posix.cc \
+	lib/libchrome/base/strings/utf_string_conversions.cc \
+	lib/libchrome/base/strings/utf_string_conversion_utils.cc \
+	lib/libchrome/base/synchronization/condition_variable_posix.cc \
+	lib/libchrome/base/synchronization/lock.cc \
+	lib/libchrome/base/synchronization/lock_impl_posix.cc \
+	lib/libchrome/base/task_runner.cc \
+	lib/libchrome/base/third_party/icu/icu_utf.cc \
+	lib/libchrome/base/third_party/nspr/prtime.cc \
+	lib/libchrome/base/threading/platform_thread_internal_posix.cc \
+	lib/libchrome/base/threading/platform_thread_linux.cc \
+	lib/libchrome/base/threading/platform_thread_posix.cc \
+	lib/libchrome/base/threading/post_task_and_reply_impl.cc \
+	lib/libchrome/base/threading/sequenced_task_runner_handle.cc \
+	lib/libchrome/base/threading/sequence_local_storage_map.cc \
+	lib/libchrome/base/threading/thread_checker_impl.cc \
+	lib/libchrome/base/threading/thread_id_name_manager.cc \
+	lib/libchrome/base/threading/thread_local_storage.cc \
+	lib/libchrome/base/threading/thread_local_storage_posix.cc \
+	lib/libchrome/base/threading/thread_restrictions.cc \
+	lib/libchrome/base/threading/thread_task_runner_handle.cc \
+	lib/libchrome/base/timer/elapsed_timer.cc \
+	lib/libchrome/base/time/time.cc \
+	lib/libchrome/base/time/time_conversion_posix.cc \
+	lib/libchrome/base/time/time_exploded_posix.cc \
+	lib/libchrome/base/time/time_now_posix.cc \
+	lib/libchrome/base/time/time_override.cc
 
 CHROME_OBJ=$(addprefix $(BUILD_DIR)/,$(CHROME_SRC:=.o))
 
