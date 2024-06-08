@@ -217,16 +217,21 @@ INCLUDE += lib/protobuf/src lib/protobuf/third_party/abseil-cpp
 
 LIBS += libprotobuf.a third_party.a
 
-$(BUILD_DIR)/third_party.a: $(BUILD_DIR)/lib/protobuf/libprotobuf.a
-	@ echo "[AR]\t$@"
-	@ find $(BUILD_DIR)/lib/protobuf/third_party -name '*.a' | xargs $(AR) -rcT $@
+PB_BUILD_DIR  = $(BUILD_DIR)/lib/protobuf
+PB_MAKEFILE   = $(PB_BUILD_DIR)/Makefile
+PB_LIB_OUT    = $(PB_BUILD_DIR)/libprotobuf.a
+PB_MAKE       = $(MAKE) -C $(PB_BUILD_DIR)
 
-$(BUILD_DIR)/libprotobuf.a: $(BUILD_DIR)/lib/protobuf/libprotobuf.a
+$(BUILD_DIR)/third_party.a: $(PB_LIB_OUT)
+	@ echo "[AR]\t$@"
+	@ find $(PB_BUILD_DIR)/third_party -name '*.a' | xargs $(AR) -rcT $@
+
+$(BUILD_DIR)/libprotobuf.a: $(PB_LIB_OUT)
 	cp $< $@
 
-$(BUILD_DIR)/lib/protobuf/libprotobuf.a: $(BUILD_DIR)/lib/protobuf/Makefile
-	make -C $(BUILD_DIR)/lib/protobuf libprotobuf
+$(PB_LIB_OUT): $(PB_MAKEFILE)
+	$(PB_MAKE) libprotobuf
 
-$(BUILD_DIR)/lib/protobuf/Makefile:
-	cmake -S lib/protobuf -B $(BUILD_DIR)/lib/protobuf
+$(PB_MAKEFILE):
+	cmake -S lib/protobuf -B $(PB_BUILD_DIR)
 
