@@ -103,13 +103,7 @@ static struct argp argp = {
   "Applies the upload to existing partition images"
 };
 
-typedef struct {
-  int part_number;
-  int in;
-  int out;
-} task;
-
-task *jobs;
+partition *jobs;
 int total_operations = 0;
 int job_count = 0;
 
@@ -144,30 +138,15 @@ void launch_apply(char *partition) {
     }
   }
 }
-
-typedef struct {
-  int start;
-  int end;
-  task* job;
-} thread_job;
-
 void* run_apply(void *a) {
-  thread_job *t_job = (thread_job*)a;
+  section *queue = (section*)a;
 
   FILE *f = fopen(args.update_file, "rb");
 
-  while (t_job->job != NULL) {
-    apply_partition(
-        &update,
-        &update.manifest.partitions(t_job->job->part_number),
-        t_job->start,
-        t_job->end,
-        f,
-        t_job->job->in,
-        t_job->job->out
-    );
+  while (queue->part != NULL) {
+    apply_section(&update, queue, f);
 
-    t_job++;
+    queue++;
   }
 
   fclose(f);
@@ -209,7 +188,7 @@ INIT_FUNC(apply) {
     return 1;
   }
 
-  jobs = malloc_t(task, update.manifest.partitions_size());
+  jobs = malloc_t(partition, update.manifest.partitions_size());
 
   if (args.partitions == NULL) {
     launch_apply(NULL);
@@ -225,42 +204,42 @@ INIT_FUNC(apply) {
   int ops_needed = ops_per_thread;
   int used = 0;
   int job = 0;
-  int thread_job_i = 0;
+  int section_i = 0;
   int cur_thread = 0;
   pthread_t *tid = malloc_t(pthread_t, args.threads);
-  thread_job *t = malloc_t(thread_job, job_count + 1);
+  section *thread_queue = malloc_t(section, job_count + 1);
 
   while (job != job_count) {
-    t[thread_job_i].job = &jobs[job];
-    t[thread_job_i].start = used;
+    thread_queue[section_i].part = &jobs[job];
+    thread_queue[section_i].start = used;
 
     int ops_in_part = update.manifest.partitions(jobs[job].part_number).operations_size();
     int ops_left = ops_in_part - used;
     if (ops_left <= ops_needed) {
-      t[thread_job_i].end = ops_in_part - 1;
+      thread_queue[section_i].end = ops_in_part - 1;
       job++;
       used = 0;
       ops_needed -= ops_left;
     } else {
       used += ops_needed;
-      t[thread_job_i].end = used;
+      thread_queue[section_i].end = used;
       ops_needed = 0;
     }
 
-    thread_job_i++;
+    section_i++;
 
     // If the thread is full, or we've run out of jobs to assign, we can
     // start it and start assigning to the next one.
     if (ops_needed == 0 || job == job_count) {
-      t[thread_job_i].job = NULL;
-      pthread_create(&tid[cur_thread++], NULL, run_apply, t);
-      thread_job_i = 0;
+      thread_queue[section_i].part = NULL;
+      pthread_create(&tid[cur_thread++], NULL, run_apply, thread_queue);
+      section_i = 0;
       ops_needed = ops_per_thread;
 
       // Get the next thread job list ready if we still have things to
       // process
       if (job != job_count) {
-        t = malloc_t(thread_job, job_count + 1);
+        thread_queue = malloc_t(section, job_count + 1);
       }
     }
   }

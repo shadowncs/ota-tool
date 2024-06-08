@@ -29,6 +29,18 @@ typedef struct {
   chromeos_update_engine::DeltaArchiveManifest manifest;
 } payload;
 
+typedef struct {
+  int part_number;
+  int in;
+  int out;
+} partition;
+
+typedef struct {
+  partition* part;
+  int start;
+  int end;
+} section;
+
 #define ZIP_MAGIC 0x04034b50
 
 typedef struct __attribute__((__packed__)) {
@@ -58,15 +70,7 @@ char* output_buffer(const chromeos_update_engine::InstallOperation *op, unsigned
 char* get_src(int in, unsigned int *size,
   const chromeos_update_engine::InstallOperation *op);
 
-void apply_partition(
-    payload *update,
-    const chromeos_update_engine::PartitionUpdate *p,
-    int start_at,
-    int end_at,
-    FILE *data_file,
-    int in_file,
-    int out_file
-  );
+void apply_section(payload *update, section *section, FILE *data_file);
 
  
 #endif /* ifndef _H_PAYLOAD */
