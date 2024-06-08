@@ -1,5 +1,5 @@
 #include "ota_tool.h"
-#include "apply.h"
+#include "payload.h"
 #include "util.h"
 #include <argp.h>
 #include <fcntl.h>

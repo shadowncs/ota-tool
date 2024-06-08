@@ -57,5 +57,16 @@ char* output_buffer(const chromeos_update_engine::InstallOperation *op, unsigned
 
 char* get_src(int in, unsigned int *size,
   const chromeos_update_engine::InstallOperation *op);
+
+void apply_partition(
+    payload *update,
+    const chromeos_update_engine::PartitionUpdate *p,
+    int start_at,
+    int end_at,
+    FILE *data_file,
+    int in_file,
+    int out_file
+  );
+
  
 #endif /* ifndef _H_PAYLOAD */
