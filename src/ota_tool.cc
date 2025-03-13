@@ -130,19 +130,24 @@ void launch_apply(char *partition) {
       jobs[job_count++].out = out;
       total_operations += part.operations_size();
 
+
       if (partition != NULL) {
         return;
       }
     }
   }
 }
+
+int ret_code = 0;
+
 void* run_apply(void *a) {
   section *queue = (section*)a;
 
   FILE *f = fopen(args.update_file, "rb");
 
-  while (queue->part != NULL) {
-    apply_section(&update, queue, f);
+  while (queue->part != NULL && !ret_code) {
+    if (apply_section(&update, queue, f))
+      ret_code = 1;
 
     queue++;
   }
@@ -241,7 +246,7 @@ INIT_FUNC(apply) {
     close(jobs[job].out);
   }
 
-  return 0;
+  return ret_code;
 }
 
 INIT_FUNC(main) {

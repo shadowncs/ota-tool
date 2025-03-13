@@ -71,7 +71,7 @@ char* output_buffer(const chromeos_update_engine::InstallOperation *op, unsigned
 char* get_src(int in, unsigned int *size,
   const chromeos_update_engine::InstallOperation *op);
 
-void apply_section(payload *update, section *section, FILE *data_file);
+int apply_section(payload *update, section *section, FILE *data_file);
 
  
 #endif /* ifndef _H_PAYLOAD */

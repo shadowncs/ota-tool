@@ -115,7 +115,8 @@ char* get_src(int in, unsigned int *size,
   return src;
 }
 
-void apply_section(payload *update, section *section, FILE *data_file) {
+int apply_section(payload *update, section *section, FILE *data_file) {
+  int ret = 1;
   const char* part_name = update->manifest.partitions(section->part->part_number).partition_name().data();
   while (section->start < section->end) {
     chromeos_update_engine::InstallOperation op = update->manifest.partitions(section->part->part_number).operations(section->start++);
@@ -180,7 +181,7 @@ void apply_section(payload *update, section *section, FILE *data_file) {
         break;
       default:
         log_err(part_name, "Unknown Operation Type");
-        return;
+        goto end;
     }
 
     write_out(section->part->out, &op, output);
@@ -188,6 +189,8 @@ void apply_section(payload *update, section *section, FILE *data_file) {
     if (output != src && output != data) {
       free(output);
     }
+
+    ret = 0;
 end:
     if (data != 0) {
       free(data);
@@ -196,6 +199,5 @@ end:
       free(src);
     }
   }
+  return ret;
 }
-
-
