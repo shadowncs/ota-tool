@@ -203,7 +203,7 @@ INIT_FUNC(apply) {
     int ops_in_part = update.manifest.partitions(jobs[job].part_number).operations_size();
     int ops_left = ops_in_part - used;
     if (ops_left <= ops_needed) {
-      thread_queue[section_i].end = ops_in_part - 1;
+      thread_queue[section_i].end = ops_in_part;
       job++;
       used = 0;
       ops_needed -= ops_left;
