@@ -7,7 +7,7 @@
 #include <sys/sysinfo.h>
 
 
-const char *argp_program_version = "ota-tool 2.0-dev";
+const char *argp_program_version = "ota-tool 2.1-shadowncs";
 const char *argp_program_bug_address = "<emily@redcoat.dev>";
 
 struct arguments args = { NULL, NULL, NULL, NULL, get_nprocs_conf() };
