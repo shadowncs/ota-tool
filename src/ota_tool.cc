@@ -81,8 +81,6 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case ARGP_KEY_END:
       if (!arguments->update_file)
         argp_usage(state);
-      if (!arguments->input)
-        argp_usage(state);
       if (!arguments->output)
         argp_usage(state);
       break;
@@ -112,12 +110,15 @@ void launch_apply(char *partition) {
 
     if (partition == NULL || strcmp(partition_name, partition) == 0) {
 
-      int in = open_img_file(args.input, partition_name, O_RDONLY);
-      if (in < 0) {
-        if (partition != NULL) {
-          log_err(partition, "Could not open the source image for reading");
+      int in = -1;
+      if (args.input) {
+        in = open_img_file(args.input, partition_name, O_RDONLY);
+        if (in < 0) {
+          if (partition != NULL) {
+            log_err(partition, "Could not open the source image for reading");
+          }
+          continue;
         }
-        continue;
       }
       int out = open_img_file(args.output, partition_name, O_WRONLY | O_CREAT | O_TRUNC);
       if (out < 0) {

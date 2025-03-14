@@ -100,7 +100,7 @@ char* get_src(int in, unsigned int *size,
     *size += b2o(src_extent.num_blocks());
   }
 
-  if (*size == 0) {
+  if (*size == 0 || in < 0) {
     return (char*)0;
   }
 
@@ -130,6 +130,11 @@ void apply_section(payload *update, section *section, FILE *data_file) {
     uint64_t mem_limit = 1410065407;
     size_t next = 0;
     size_t out = 0;
+
+    if (src_size && !src) {
+      log_err(part_name, "Incremental OTA package, requiring a base image. Either none was given, or it is inaccessible.");
+      goto end;
+    }
 
     if (op.has_src_sha256_hash()) {
       sha256_bytes(src, src_size, hash);
@@ -197,5 +202,3 @@ end:
     }
   }
 }
-
-
